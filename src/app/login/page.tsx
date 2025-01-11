@@ -13,6 +13,10 @@ export default function LoginPage() {
     const [errorMessage, setErrorMessage] = useState("");
     const router = useRouter();
 
+    const setToken = (token: string) => {
+        localStorage.setItem("token", token);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMessage("");
@@ -20,6 +24,7 @@ export default function LoginPage() {
         // Mock login logic
         if (gmail === mockUser.gmail && password === mockUser.password) {
             console.log("Login successful");
+            setToken("mockToken123");
             router.push("/admin"); // Navigate to another page after login
         } else {
             setErrorMessage("Invalid gmail or password");
@@ -39,6 +44,7 @@ export default function LoginPage() {
                 throw new Error("Network response was not ok");
             }
             const data = await res.json();
+            setToken(data.token);
             router.push("/admin");
         } catch (error) {
             console.error(error);
