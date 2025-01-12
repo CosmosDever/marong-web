@@ -6,17 +6,13 @@ import Image from "next/image";
 import admin from "../assets/admin.png";
 
 const mockupUser = [
-  { id: 1, username: "admin", name: "macus", role: "Master Admin", picture: admin },
-  { id: 2, username: "admin2", name: "boss", role: "Admin", picture: admin },
-  { id: 3, username: "admin3", name: "adam", role: "Admin", picture: admin },
-  { id: 4, username: "admin4", name: "eva", role: "Admin", picture: admin },
-  { id: 5, username: "admin5", name: "john", role: "Admin", picture: admin },
-  { id: 6, username: "admin6", name: "macus", role: "Master Admin", picture: admin },
-  { id: 7, username: "admin7", name: "boss", role: "Admin", picture: admin },
-  { id: 8, username: "admin8", name: "adam", role: "Admin", picture: admin },
-  { id: 9, username: "admin9", name: "eva", role: "Admin", picture: admin },
-  { id: 10, username: "admin10", name: "john", role: "Admin", picture: admin },
-];
+    { id: 1, name: "macus", role: "Master Admin", picture: admin },
+    { id: 2, name: "boss", role: "Admin", picture: admin },
+    { id: 3, name: "adam", role: "Admin", picture: admin },
+    { id: 4, name: "eva", role: "Admin", picture: admin },
+    { id: 5, name: "john", role: "Admin", picture: admin },
+  ];
+  
 
 interface User {
   id: number;
@@ -49,7 +45,7 @@ export default function AdminPage() {
         <div className="bg-white p-6 shadow-md">
           <div className="flex items-center justify-between mx-auto w-[90%]">
             <div className="text-3xl font-bold">ADMIN MANAGEMENT</div>
-            <a href="/admin/register" className="text-blue-600 flex items-center">
+            <a href="/admin/add" className="text-blue-600 flex items-center">
                 <Image src="/Addbtn.png" alt="Add News" width={30} height={30} className="mr-2" />
               <span className="translate-y-1">Add Admin</span>
             </a>
@@ -57,11 +53,10 @@ export default function AdminPage() {
           <div className="w-[90%] mx-auto top-10">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="p-2 w-1/5 text-left">
-                  <th className="p-2 w-1/5 text-left font-lg">Picture</th>
-                  <th className="p-2 w-1/5 text-left font-lg">Username</th>
-                  <th className="p-2 w-1/5 text-left">Name</th>
-                  <th className="p-2 w-1/10 text-left">Role</th>
+                <tr className="p-2 w-1/4 text-left">
+                  <th className="p-2 w-1/4 text-left font-lg">Picture</th>
+                  <th className="p-2 w-1/4 text-left">Name</th>
+                  <th className="p-2 w-1/8 text-left">Role</th>
                 </tr>
               </thead>
             </table>
@@ -77,7 +72,7 @@ export default function AdminPage() {
                 className="bg-white p-4 flex items-center rounded-lg shadow-md text-lg hover:bg-blue-200 cursor-pointer"
                 onClick={() => handleCardClick(user.id)}
               >
-                <div className="w-1/5 text-left">
+                <div className="w-1/4 text-left">
                   <Image
                     src={user.picture}
                     alt="User"
@@ -86,10 +81,9 @@ export default function AdminPage() {
                     className="rounded-lg object-cover"
                   />
                 </div>
-                <div className="w-1/5 text-left font-lg">{user.username}</div>
-                <div className="w-1/5 text-left font-medium">{user.name}</div>
-                <div className="w-1/5 text-left text-gray-600">{user.role}</div>
-                <div className="w-1/10 text-right ml-auto">
+                <div className="w-1/4 text-left font-medium">{user.name}</div>
+                <div className="w-1/4 text-left text-gray-600">{user.role}</div>
+                <div className="w-1/8 text-right ml-auto">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
