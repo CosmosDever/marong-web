@@ -22,8 +22,8 @@ const Sidebar: FC = () => {
         <Image
           src="/Logo.png"
           alt="Marong Logo"
-          width={120}
-          height={40}
+          width={240}
+          height={80}
           className="object-contain"
         />
       </div>
