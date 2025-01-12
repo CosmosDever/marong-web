@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import axios from "axios";
-import Sidebar from "../../component/Sidebar";
+import Sidebar from "../../component/sidebar";
 
 export default function AdminRegister() {
   const [loading, setLoading] = useState(false);
