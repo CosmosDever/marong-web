@@ -1,8 +1,8 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import Sidebar from "../../../component/sidebar";
-import Image from "next/image";
+import Sidebar from "../../../component/Sidebar";
+import Image, { StaticImageData } from "next/image";
 import { useState } from "react";
 import admin from "../../../assets/admin.png";
 
@@ -27,10 +27,10 @@ export default function AdminProfile() {
     password: "",
     confirmPassword: "",
     role: user?.role || "",
-    picture: user?.picture || null,
+    picture: user?.picture || null as string | StaticImageData | File | null,
   });
 
-  const [imagePreview, setImagePreview] = useState(user?.picture || null);
+  const [imagePreview, setImagePreview] = useState<string | StaticImageData | null>(user?.picture || null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -43,7 +43,7 @@ export default function AdminProfile() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = () => setImagePreview(reader.result as string);
+      reader.onload = () => setImagePreview(reader.result as string | null);
       reader.readAsDataURL(file);
       setFormData({ ...formData, picture: file });
     }

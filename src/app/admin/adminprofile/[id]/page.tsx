@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import Sidebar from "../../../component/sidebar";
+import Sidebar from "../../../component/Sidebar";
 import Image from "next/image";
 import admin from "../../../assets/admin.png";
 

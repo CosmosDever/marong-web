@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import axios from "axios";
-import Sidebar from "../../component/sidebar";
+import Sidebar from "../../component/Sidebar";
 
 export default function AdminRegister() {
   const [loading, setLoading] = useState(false);
@@ -10,8 +10,8 @@ export default function AdminRegister() {
   const [successMessage, setSuccessMessage] = useState("");
   const [imagePreview, setImagePreview] = useState("");
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files ? event.target.files[0] : null;
     if (file && file.type.startsWith("image/")) {
       setImagePreview(URL.createObjectURL(file));
     } else {
@@ -19,9 +19,10 @@ export default function AdminRegister() {
     }
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.target);
+    const form = event.target as HTMLFormElement;
+    const formData = new FormData(form);
 
     const password = formData.get("password");
     const confirmPassword = formData.get("confirm_password");
@@ -51,7 +52,7 @@ export default function AdminRegister() {
     } catch (error) {
       setLoading(false);
       setErrorMessage(
-        error.response?.data || "การเพิ่มบัญชีเจ้าหน้าที่ไม่สำเร็จ กรุณาลองอีกครั้ง"
+        (axios.isAxiosError(error) && error.response?.data) || "การเพิ่มบัญชีเจ้าหน้าที่ไม่สำเร็จ กรุณาลองอีกครั้ง"
       );
     }
   };
