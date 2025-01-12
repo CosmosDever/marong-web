@@ -23,6 +23,9 @@ export default function AdminProfile() {
   const handleCardClick = (id: number) => {
     router.push(`/admin/edit/${id}`);
   };
+  const handleCancel = () => {
+    router.push(`/admin`);
+  };
 
   if (!user) {
     return (
@@ -79,7 +82,13 @@ export default function AdminProfile() {
                 </div>
               </div>
             </div>
-            <div className="text-right">
+            <div className="text-right space-x-4">
+            <button
+                onClick={handleCancel}
+                className="mt-10 py-2 px-6 text-sm text-white bg-gray-500 hover:bg-gray-700 rounded-lg"
+              >
+                Back
+              </button>
               <button
                 onClick={() => handleCardClick(user.id)}
                 className=" mt-10 py-2 px-6 text-sm text-white bg-blue-500 hover:bg-blue-700 rounded-lg" 
