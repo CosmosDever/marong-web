@@ -2,13 +2,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var react_1 = require("react");
+var navigation_1 = require("next/navigation"); // Import useRouter for navigation
 var head_1 = require("next/head");
 var image_1 = require("next/image");
+var Sidebar_1 = require("../component/Sidebar");
 var NewsPage = function () {
     var _a = (0, react_1.useState)(null), selectedRowId = _a[0], setSelectedRowId = _a[1];
     var _b = (0, react_1.useState)(false), isPopupVisible = _b[0], setIsPopupVisible = _b[1];
     var _c = (0, react_1.useState)(Array.from({ length: 5 }, function (_, index) { return "00".concat(index + 4); })), rows = _c[0], setRows = _c[1];
     var _d = (0, react_1.useState)("News"), selectedSidebarItem = _d[0], setSelectedSidebarItem = _d[1];
+    var router = (0, navigation_1.useRouter)(); // Initialize the router
     var handleDeleteClick = function (rowId) {
         setSelectedRowId(rowId);
         setIsPopupVisible(true);
@@ -24,82 +27,16 @@ var NewsPage = function () {
         setIsPopupVisible(false);
         setSelectedRowId(null);
     };
-    var handleSidebarItemClick = function (item) {
-        setSelectedSidebarItem(item);
-    };
-    var getSidebarImage = function (item) {
-        switch (item) {
-            case "Overview":
-                return "/overview.png"; // Path to overview image
-            case "Case":
-                return "/case.png"; // Path to case image
-            case "News":
-                return "/news.png"; // Path to news image
-            case "Admin management":
-                return "/admin.png"; // Path to admin management image
-            default:
-                return ""; // Default fallback if none of the items match
-        }
-    };
     return (<>
       <head_1.default>
         <title>News Page</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet"/>
-        <link rel="preconnect" href="https://fonts.googleapis.com"/>
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous"/>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"/>
       </head_1.default>
       <div className="bg-gray-100 flex h-screen">
         {/* Sidebar */}
-        <div className="w-1/6 bg-white h-full shadow-[4px_0_8px_rgba(0,0,0,0.3)] z-10">
-          <div className="flex items-center px-5 py-4 border-b">
-            <image_1.default src="/Logo.png" alt="Marong Logo" width={120} height={40} className="object-contain"/>
-          </div>
-
-          <div className="mt-4">
-            <ul>
-              {["Overview", "Case", "News", "Admin management"].map(function (item) { return (<li key={item} className={"relative flex items-center ml-2 py-2 px-4 rounded-lg cursor-pointer ".concat(selectedSidebarItem === item
-                ? "bg-blue-200 text-blue-800"
-                : "text-gray-800 hover:bg-blue-100 hover:text-blue-800")} onClick={function () { return handleSidebarItemClick(item); }}>
-                  {/* Dark blue vertical line */}
-                  <span className={"absolute left-0 top-0 h-full w-1 ".concat(selectedSidebarItem === item
-                ? "bg-blue-900"
-                : "bg-transparent hover:bg-blue-900")}></span>
-
-                  {/* Sidebar icon and text */}
-                  <image_1.default src={getSidebarImage(item)} // Get the corresponding image for each item
-         alt={"".concat(item, " icon")} width={20} height={20} className="rounded"/>
-                  <i className={"ml-3 mr-2 ".concat(item === "Overview"
-                ? "fas fa-home"
-                : item === "Case"
-                    ? "far fa-folder"
-                    : item === "News"
-                        ? "far fa-file-alt"
-                        : "fas fa-user-cog")}></i>
-                  {item}
-                </li>); })}
-            </ul>
-          </div>
-
-          <div className="absolute bottom-0 left-0 w-full p-4">
-            <div className="flex items-center">
-              <image_1.default src="/adminpfp.png" alt="admin profile picture" width={40} height={40} className="w-10 h-10 rounded-full"/>
-              <div className="ml-3">
-                <div className="text-gray-900">Admin name</div>
-                <div className="text-gray-500 text-sm">Master Admin</div>
-              </div>
-            </div>
-            <div className="flex items-center mt-3">
-              <image_1.default src="/Logout.png" alt="logout icon" width={25} height={25} className="rounded-full"/>
-              <a href="#" className="ml-2 text-gray-600 hover:text-gray-800 flex items-center">
-                <i className="fas fa-sign-out-alt mr-2"></i>
-                Log Out
-              </a>
-            </div>
-          </div>
-        </div>
+        <Sidebar_1.default />
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col bg-gray-100 h-full">
@@ -162,11 +99,13 @@ var NewsPage = function () {
                       <td className="p-2 border">Date</td>
                       <td className="p-2 border">
                         <a href="/news/editnews" className="text-blue-600 hover:underline">
-                          Edit
+                          <image_1.default src="/editbutton.png" alt="Edit Button" width={20} height={20} className="inline-block"/>
                         </a>
                       </td>
+
                       <td className="p-2 border">
-                        <button onClick={function () { return handleDeleteClick(rowId); }} className="text-red-600 ml-2">
+                        <button onClick={function () { return handleDeleteClick(rowId); }} className="text-red-600 ml-2" style={{ color: "E03515" }}>
+                          
                           Delete
                         </button>
                       </td>
