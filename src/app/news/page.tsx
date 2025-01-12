@@ -4,7 +4,7 @@ import { FC, useState } from "react";
 import { useRouter } from "next/navigation"; // Import useRouter for navigation
 import Head from "next/head";
 import Image from "next/image";
-import Sidebar from "../component/Sidebar";
+import Sidebar from "../component/sidebar";
 
 const NewsPage: FC = () => {
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null);

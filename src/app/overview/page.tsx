@@ -2,7 +2,7 @@
 
 import { FC } from "react";
 import Head from "next/head";
-import Sidebar from "../component/Sidebar"; // Adjust the import path to the actual location of your Sidebar component
+import Sidebar from "../component/sidebar"; // Adjust the import path to the actual location of your Sidebar component
 
 const OverviewPage: FC = () => {
   return (

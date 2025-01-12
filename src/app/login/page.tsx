@@ -1,56 +1,41 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const mockUser = {
-    gmail: "admin@gmail.com",
-    password: "admin",
-};
-
 export default function LoginPage() {
-    const [gmail, setGmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
+    const [gmail, setGmail] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
+    const [errorMessage, setErrorMessage] = useState<string>("");
     const router = useRouter();
 
-    const setToken = (token: string) => {
+    const setToken = (token: string): void => {
         localStorage.setItem("token", token);
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent): Promise<void> => {
         e.preventDefault();
         setErrorMessage("");
 
-        // Mock login logic
-        if (gmail === mockUser.gmail && password === mockUser.password) {
-            console.log("Login successful");
-            setToken("mockToken123");
-            router.push("/admin"); // Navigate to another page after login
-        } else {
-            setErrorMessage("Invalid gmail or password");
-        }
-
-        // Example API call for future use
-        /*
         try {
-            const res = await fetch("/api/login", {
+            const response = await fetch("/api/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ gmail, password }),
             });
-            if (!res.ok) {
-                throw new Error("Network response was not ok");
+
+            if (!response.ok) {
+                throw new Error("Invalid credentials");
             }
-            const data = await res.json();
-            setToken(data.token);
-            router.push("/admin");
-        } catch (error) {
-            console.error(error);
-            setErrorMessage("Login failed. Please try again.");
+
+            const data = await response.json();
+            const token: string = data.data.token[0];
+            setToken(token);
+            router.push("/overview");
+        } catch (error: any) {
+            setErrorMessage(error.message || "An error occurred. Please try again.");
         }
-        */
     };
 
     return (
@@ -72,7 +57,7 @@ export default function LoginPage() {
                             htmlFor="gmail"
                             className="absolute text-black font-medium text-sm left-3 top-1 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-lg peer-placeholder-shown:text-gray-500 peer-placeholder-shown:font-normal"
                         >
-                            gmail
+                            Gmail
                         </label>
                     </div>
 

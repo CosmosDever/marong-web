@@ -4,7 +4,7 @@ import { FC, useState } from "react";
 import Link from "next/link";
 import Head from "next/head";
 import Image from "next/image";
-import Sidebar from "../../component/Sidebar";
+import Sidebar from "../../component/sidebar";
 
 
 const EditPage: FC = () => {

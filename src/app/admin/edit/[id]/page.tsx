@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import Sidebar from "../../../component/Sidebar";
+import Sidebar from "../../../component/sidebar";
 import Image, { StaticImageData } from "next/image";
 import { useState } from "react";
 import admin from "../../../assets/admin.png";
