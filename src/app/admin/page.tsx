@@ -50,6 +50,7 @@ export default function AdminPage() {
           <div className="flex items-center justify-between mx-auto w-[90%]">
             <div className="text-3xl font-bold">ADMIN MANAGEMENT</div>
             <a href="/admin/register" className="text-blue-600 flex items-center">
+                <Image src="/Addbtn.png" alt="Add News" width={30} height={30} className="mr-2" />
               <span className="translate-y-1">Add Admin</span>
             </a>
           </div>
