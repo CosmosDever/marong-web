@@ -1,30 +1,40 @@
 import Image from "next/image";
+import Link from "next/link";
 
-const BoxCase = () => {
-  const cases = Array(10)
+const CaseBox = () => {
+  const cases = Array(15)
     .fill(null)
-    .map((_, index) => `case-${index + 1}`);
+    .map((_, index) => `${index + 1}`);
   return (
     <>
-      <div className="h-full overflow-y-auto mt-[2vh]">
-        <div className="flex flex-col justify-center items-center">
+      <div className="h-full overflow-y-auto mt-[2vh] pb-[4vh]">
+        <div className="w-full flex flex-col justify-center items-center">
           {cases.map((caseId) => (
-            <div key={caseId} className="h-[12vh] w-10/12 mb-[3vh] bg-blue-300">
-              <p>{caseId}</p>
-              <a href="/case/detail" className="text-blue-600 hover:underline">
-                <Image
-                  src="/editbutton.png"
-                  alt="Edit Button"
-                  width={25}
-                  height={25}
-                  className="inline-block"
-                />
-              </a>
-            </div>
+            <Link key={caseId} href={`/case/${caseId}`} passHref>
+              <div className="w-full">
+                <div
+                  key={caseId}
+                  className="flex justify-stretch items-center h-[16vh] w-[70vw] mb-[3vh] bg-gray-200 border-white border-4 rounded-xl text-black text-base"
+                >
+                  <div className="ml-[3vw]">
+                    <img
+                      src="/case1.png"
+                      alt="case1 pic"
+                      height={120}
+                      width={120}
+                    />
+                  </div>
+                  <p className="ml-[8vw]">{caseId}</p>
+                  <p className="ml-[10vw]">Type</p>
+                  <p className="ml-[10vw]">12/01/2025</p>
+                  <p className="ml-[10vw]">Status</p>
+                </div>
+              </div>
+            </Link>
           ))}
         </div>
       </div>
     </>
   );
 };
-export default BoxCase;
+export default CaseBox;
