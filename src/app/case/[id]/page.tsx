@@ -1,8 +1,8 @@
-import CaseControl from "@/app/component/CaseControl";
 import Sidebar from "@/app/component/Sidebar";
 import Image from "next/image";
+import CaseControl from "../caseComponents/CaseControl";
 
-const detail = async ({ params }) => {
+const detail = async ({ params }:{params:any}) => {
   const { id } = await params;
   console.log(id);
   return (
@@ -32,17 +32,19 @@ const detail = async ({ params }) => {
               Lorem ipsum dolor sit amet consectetur adipiscing elit maecenas
               quisque tempor, tristique nisi class hac condimentum risus magna
               et donec vehicula, tempus aptent sem augue semper lacus hendrerit
-              bibendum odio.Lorem ipsum dolor sit amet consectetur adipiscing elit maecenas
-              quisque tempor, tristique nisi class hac condimentum risus magna
-              et donec vehicula, tempus aptent sem augue semper lacus hendrerit
-              bibendum odio.
+              bibendum odio.Lorem ipsum dolor sit amet consectetur adipiscing
+              elit maecenas quisque tempor, tristique nisi class hac condimentum
+              risus magna et donec vehicula, tempus aptent sem augue semper
+              lacus hendrerit bibendum odio.
             </p>
             {/* Location */}
             <div className="w-[50vw] flex mt-[3vh] ml-[2vw]">
               <Image src="/map.png" alt="Map pic" width={200} height={200} />
               <div className="flex flex-col ml-[2vw]">
                 <h1 className="font-semibold">Location:</h1>
-                <p className="">126 Pracha Uthit Rd, Bang Mot, Thung Khru, Bangkok 10140</p>
+                <p className="">
+                  126 Pracha Uthit Rd, Bang Mot, Thung Khru, Bangkok 10140
+                </p>
               </div>
             </div>
           </div>

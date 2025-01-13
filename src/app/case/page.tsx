@@ -1,5 +1,5 @@
-import CaseBox from "../component/CaseBox";
-import Searchbar from "../component/Searchbar";
+import CaseBox from "./caseComponents/CaseBox";
+import Searchbar from "./caseComponents/Searchbar";
 import Sidebar from "../component/Sidebar";
 
 const casePage = () => {
@@ -19,13 +19,13 @@ const casePage = () => {
           {/* Body */}
           <div className="h-[80vh] w-full">
             {/* label */}
-            <div className="ml-[5vw] h-[3vh flex w-full text-sm font-bold">
-              <p className="ml-[6vw]">Picture</p>
-              <p className="ml-[12vw]">ID</p>
-              <p className="ml-[9.5vw]">Type</p>
+            <div className="pl-[10vw] pr-[15vw] grid grid-cols-5 gap-x-10 h-[3vh] w-full text-sm font-bold">
+              <p className="">Picture</p>
+              <p className="pl-[3vw]">ID</p>
+              <p className="">Type</p>
               {/* <p className="">Detail</p> */}
-              <p className="ml-[10vw]">Date</p>
-              <p className="ml-[14vw]">Status</p>
+              <p className="pl-[2vw]">Date</p>
+              <p className="pl-[8vw]">Status</p>
             </div>
             {/* box */}
             <div className="h-full w-full bg-[#dee3f6] border-body-border border-t-4 rounded ">
