@@ -11,6 +11,8 @@ interface User {
   picture: any;
   gmail: string;
   fullName: string;
+  birthday: string;
+  gender: string;
   role: string;
 }
 
@@ -103,6 +105,18 @@ export default function AdminProfile() {
                   <label className="block text-gray-700 font-medium mb-2">Your Name</label>
                   <p className="w-full border border-gray-300 rounded-md px-4 py-2">
                     {user.fullName || "Not Available"}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Birthday</label>
+                  <p className="w-full border border-gray-300 rounded-md px-4 py-2">
+                    {user.birthday || "Not Available"}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Gender</label>
+                  <p className="w-full border border-gray-300 rounded-md px-4 py-2">
+                    {user.gender || "Not Available"}
                   </p>
                 </div>
                 <div>
