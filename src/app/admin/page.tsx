@@ -5,7 +5,7 @@ import Sidebar from "../component/sidebar";
 import Image from "next/image";
 import admin from "../assets/admin.png";
 
-const mockupUser = [
+const mockupUser: any = [
     { id: 1, name: "macus", role: "Master Admin", picture: admin },
     { id: 2, name: "boss", role: "Admin", picture: admin },
     { id: 3, name: "adam", role: "Admin", picture: admin },
