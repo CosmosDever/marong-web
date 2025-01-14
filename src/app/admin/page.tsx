@@ -111,20 +111,20 @@ export default function AdminPage() {
       {/* Confirm Delete Popup */}
       {showConfirmPopup && selectedUserName && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[300px] text-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[300px] text-left">
             <div className="text-lg mb-4">Confirm to delete Admin Name: {selectedUserName}</div>
             <div className="flex justify-between">
-              <button
-                onClick={handleConfirmDelete}
-                className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-500"
-              >
-                Delete
-              </button>
               <button
                 onClick={handleCancelDelete}
                 className="bg-gray-300 text-black py-2 px-4 rounded-lg hover:bg-gray-200"
               >
                 Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-500"
+              >
+                Delete
               </button>
             </div>
           </div>

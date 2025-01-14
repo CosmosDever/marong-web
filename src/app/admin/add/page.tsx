@@ -4,7 +4,7 @@ import { useState } from "react";
 import axios from "axios";
 import Sidebar from "../../component/sidebar";
 
-export default function AdminRegister() {
+export default function AddAdmin() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -48,7 +48,7 @@ export default function AdminRegister() {
         role: formData.get("role"),
       };
 
-      const response = await axios.post("/auth/register", requestBody, {
+      const response = await axios.post("/auth/addmin", requestBody, {
         headers: { "Content-Type": "application/json" },
       });
 
@@ -72,7 +72,7 @@ export default function AdminRegister() {
     <div className="flex bg-blue-100 h-screen text-black">
       <Sidebar />
       <div className="flex-1 p-6">
-        <div className="text-3xl font-bold mb-6">REGISTER ADMIN</div>
+        <div className="text-3xl font-bold mb-6">ADD ADMIN</div>
         <form
           onSubmit={handleSubmit}
           className="bg-white shadow-md rounded-lg p-6 w-7/10 mx-auto"
@@ -205,7 +205,7 @@ export default function AdminRegister() {
                 loading ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
-              {loading ? "Loading..." : "Register"}
+              {loading ? "Loading..." : "Add Admin"}
             </button>
           </div>
         </form>
