@@ -67,7 +67,7 @@ export default function AdminProfile() {
       }
 
       const response = await fetch(`/api/admin/update`, {
-        method: "PUT",
+        method: "PATCH",
         body: formDataToSend,
       });
 
