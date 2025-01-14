@@ -91,7 +91,7 @@ export default function AdminProfile() {
             <div className="flex items-start mb-6">
               <div className="flex-shrink-0 mr-6">
               <Image
-                src={user.picture}
+                src={admin}
                 alt="Admin"
                 width={120}
                 height={120}
