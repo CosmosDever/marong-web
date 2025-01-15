@@ -64,6 +64,7 @@ const NewsPage: FC = () => {
                 // onClick={() => setIsAddNewsVisible(true)} // Assuming this triggers the popup
                 className="text-blue-600 flex items-center mr-10"
               >
+              
                 <Image
                   src="/Addbtn.png" // Path to your image
                   alt="Add News"
