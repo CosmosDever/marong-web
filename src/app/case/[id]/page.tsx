@@ -2,15 +2,14 @@ const caturl =
   "https://th.bing.com/th/id/OIP.54-OfDJtPnzc8FPVj0lFQgHaE7?rs=1&pid=ImgDetMain";
 import CaseControl from "../caseComponents/CaseControl";
 import Sidebar from "@/app/component/sidebar";
-import { caseId } from "@/app/api/case/route";
+import { caseId } from "@/app/api/case/{id}/route";
 
 const detail = async ({ params }: { params: { id: string } }) => {
   const { id } = await params;
   const res = await caseId();
   const caseData = res[0].data;
 
-  console.log(id);
-  console.log(caseData);
+  // console.log(id);
 
   if (caseData.case_id !== id) {
     return <p className="m-[4vw] ">Case not found for ID: {id}</p>;
@@ -85,3 +84,7 @@ const detail = async ({ params }: { params: { id: string } }) => {
   );
 };
 export default detail;
+function updateCaseStatus(id: string) {
+  throw new Error("Function not implemented.");
+}
+

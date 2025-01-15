@@ -3,16 +3,16 @@ interface PopupProps {
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
-  detail: string;
-  setDetail: React.Dispatch<React.SetStateAction<string>>;
+  detail2: string;
+  setDetail2: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const InProgressPopup: React.FC<PopupProps> = ({
+const DonePopup: React.FC<PopupProps> = ({
   message,
   onConfirm,
   onCancel,
-  detail,
-  setDetail,
+  detail2,
+  setDetail2,
 }) => {
   return (
     <div className="max-h fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -22,8 +22,8 @@ const InProgressPopup: React.FC<PopupProps> = ({
           <textarea
             className="my-[2vh] px-[1vw] py-[.5vh] w-full h-[20vh] text-wrap border-black border-2"
             placeholder="Detail..."
-            value={detail}
-            onChange={(e) => setDetail(e.target.value)}
+            value={detail2}
+            onChange={(e) => setDetail2(e.target.value)}
           ></textarea>
         </form>
         <div className="flex justify-around mt-5">
@@ -47,4 +47,4 @@ const InProgressPopup: React.FC<PopupProps> = ({
   );
 };
 
-export default InProgressPopup;
+export default DonePopup;

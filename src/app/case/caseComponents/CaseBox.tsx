@@ -1,7 +1,7 @@
 const caturl =
   "https://th.bing.com/th/id/OIP.54-OfDJtPnzc8FPVj0lFQgHaE7?rs=1&pid=ImgDetMain";
+import { caseAll } from "@/app/api/case/all/route";
 import axios from "axios";
-import { caseAll } from "@/app/api/case/route";
 import Link from "next/link";
 
 const CaseBox = async () => {
