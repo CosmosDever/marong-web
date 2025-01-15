@@ -1,6 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import logo from "../assets/logo.png";
 
 export default function LoginPage() {
     const [gmail, setGmail] = useState<string>("");
@@ -41,6 +43,9 @@ export default function LoginPage() {
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-800">
             <div className="w-96 p-6 bg-gray-100 shadow-lg rounded-lg">
+                <div className="flex justify-center">
+                    <Image src={logo} alt="logo" width={100} height={100} />
+                </div>
                 <h1 className="text-2xl font-bold text-black text-center mb-4">Login</h1>
                 {errorMessage && <p className="text-red-500 text-center mb-4">{errorMessage}</p>}
                 <form onSubmit={handleSubmit}>
