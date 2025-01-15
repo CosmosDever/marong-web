@@ -5,6 +5,8 @@ interface PopupProps {
   onCancel: () => void;
   detail2: string;
   setDetail2: React.Dispatch<React.SetStateAction<string>>;
+  imageDone: string | null;
+  setImageDone: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const DonePopup: React.FC<PopupProps> = ({
@@ -13,7 +15,20 @@ const DonePopup: React.FC<PopupProps> = ({
   onCancel,
   detail2,
   setDetail2,
+  imageDone,
+  setImageDone,
 }) => {
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageDone(reader.result as string); // แปลงรูปเป็น base64
+      };
+      reader.readAsDataURL(file); // อ่านไฟล์
+    }
+  };
+
   return (
     <div className="max-h fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-lg text-center w-80 shadow-lg">
@@ -25,7 +40,15 @@ const DonePopup: React.FC<PopupProps> = ({
             value={detail2}
             onChange={(e) => setDetail2(e.target.value)}
           ></textarea>
+          <input type="file" accept="image/*" onChange={handleImageChange} />
         </form>
+        {imageDone && (
+          <img
+            src={imageDone}
+            alt="ImageDone"
+            className="mt-[2vh]"
+          />
+        )}
         <div className="flex justify-around mt-5">
           <button
             onClick={onCancel}

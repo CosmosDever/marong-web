@@ -4,12 +4,16 @@ interface PopupProps {
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
+  detailCancel: string
+  setDetailCancel:React.Dispatch<React.SetStateAction<string>>;
 }
 
 const CancelPopup: React.FC<PopupProps> = ({
   message,
   onConfirm,
   onCancel,
+  detailCancel,
+  setDetailCancel,
 }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -19,7 +23,8 @@ const CancelPopup: React.FC<PopupProps> = ({
           <textarea
             className="my-[2vh] px-[1vw] py-[.5vh] w-full h-[20vh] text-wrap border-black border-2"
             placeholder="Detail..."
-            
+            value={detailCancel}
+            onChange={(e) => setDetailCancel(e.target.value)}
           ></textarea>
         </form>
         <div className="flex justify-around mt-5">
