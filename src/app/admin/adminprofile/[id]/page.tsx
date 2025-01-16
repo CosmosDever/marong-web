@@ -27,8 +27,15 @@ export default function AdminProfile() {
 
   useEffect(() => {
     const fetchUser = async () => {
+      const token = localStorage.getItem("token");
       try {
-        const response = await fetch(`/api/admin/${userId}`);
+        const response = await fetch(`http://localhost:8080/api/admin/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        }
+      });
         const result = await response.json();
 
         if (response.ok && result.status === "success") {
