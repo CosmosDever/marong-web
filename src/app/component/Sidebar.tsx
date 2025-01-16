@@ -3,10 +3,16 @@
 import { FC } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation"; // Import usePathname to get the current route
+import { usePathname,useRouter } from "next/navigation"; // Import usePathname to get the current route
 
 const Sidebar: FC = () => {
   const currentPath = usePathname(); // Get the current route path
+  const router = useRouter();
+  
+  const logout = (): void => {
+    localStorage.removeItem("token");
+    router.push("/");
+  };
 
   const sidebarItems = [
     { name: "Overview", route: "/overview" },
@@ -85,9 +91,8 @@ const Sidebar: FC = () => {
           />
           <a
             href="#"
-            className="ml-2 text-gray-600 hover:text-gray-800 flex items-center"
+            className="ml-2 text-gray-600 hover:text-gray-800 flex items-center" onClick={logout}
           >
-            <i className="fas fa-sign-out-alt mr-2"></i>
             Log Out
           </a>
         </div>
