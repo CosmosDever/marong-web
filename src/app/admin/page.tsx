@@ -34,8 +34,6 @@ export default function AdminPage() {
     const fetchUsers = async () => {
       const token = localStorage.getItem("token");
 
-      console.log("Token in localStorage:", token);
-
       if (!token) {
         setError("Please log in to continue.");
         setLoading(false);

@@ -47,7 +47,6 @@ export default function LoginPage() {
             const token = extractToken(data);
             if (token) {
                 setToken(token);
-                console.log("Token saved in localStorage:", token);
                 router.push("/overview");
             } else {
                 throw new Error("Unexpected API response structure");
