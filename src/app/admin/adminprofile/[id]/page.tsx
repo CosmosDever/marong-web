@@ -32,8 +32,8 @@ export default function AdminProfile() {
         const response = await fetch(`http://localhost:8080/api/admin/${userId}`, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         }
       });
         const result = await response.json();
