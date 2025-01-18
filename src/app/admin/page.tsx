@@ -10,7 +10,7 @@ interface User {
   id: number;
   name: string;
   role: string;
-  picture: string;
+  picture: string; // Make sure this is a valid URL or path
 }
 
 const LoadingComponent = () => (
@@ -59,7 +59,7 @@ export default function AdminPage() {
             id: user.id,
             name: user.fullName,
             role: user.role.replace("ROLE_", ""),
-            picture: user.picture,
+            picture: user.picture, // Ensure this points to the correct image URL or path
           }));
           setUsers(formattedUsers);
         } else {
@@ -82,12 +82,43 @@ export default function AdminPage() {
     setShowConfirmPopup(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (selectedUserId !== null) {
-      setUsers(users.filter((user) => user.id !== selectedUserId));
+      const token = localStorage.getItem("token");
+  
+      if (!token) {
+        setError("Please log in to continue.");
+        return;
+      }
+  
+      try {
+        // เรียก API DELETE ที่ backend โดยไม่ต้องแก้ไข backend
+        const response = await fetch(`http://localhost:8080/api/admin/${selectedUserId}/delete`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to delete the admin");
+        }
+  
+        const data = await response.json();
+        if (data.status === "success") {
+          // หากลบสำเร็จ ให้ลบ admin ออกจาก state
+          setUsers(users.filter((user) => user.id !== selectedUserId));
+          setShowConfirmPopup(false);
+        } else {
+          throw new Error("Failed to delete the admin");
+        }
+      } catch (err: any) {
+        setError(err.message); // แสดงข้อผิดพลาดในกรณีที่เกิดปัญหา
+      }
     }
-    setShowConfirmPopup(false);
   };
+  
 
   const handleCancelDelete = () => {
     setShowConfirmPopup(false);

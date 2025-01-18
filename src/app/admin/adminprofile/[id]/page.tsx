@@ -1,14 +1,11 @@
-"use client";
-
+'use client';
 import { useParams, useRouter } from "next/navigation";
 import Sidebar from "../../../component/sidebar";
-import Image from "next/image";
 import { useState, useEffect } from "react";
-import admin from "../../../assets/admin.png";
 
 interface User {
   id: number;
-  picture: any;
+  picture: string; // แก้เป็น string แทน any เนื่องจากเป็น URL ของรูป
   gmail: string;
   fullName: string;
   birthday: string;
@@ -30,12 +27,12 @@ export default function AdminProfile() {
       const token = localStorage.getItem("token");
       try {
         const response = await fetch(`http://localhost:8080/api/admin/${userId}`, {
-        method: 'GET',
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        }
-      });
+          method: 'GET',
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          }
+        });
         const result = await response.json();
 
         if (response.ok && result.status === "success") {
@@ -98,15 +95,15 @@ export default function AdminProfile() {
         <div className="flex justify-center items-center">
           <div className="bg-white shadow-md rounded-lg p-6 w-[90%] h-[90%] flex-col">
             <div className="flex items-start mb-6">
-              <div className="flex-shrink-0 mr-6">
-              <Image
-                src={admin}
+            <div className="flex-shrink-0 mr-6">
+              <img
+                src={user.picture || "/default-avatar.png"}
                 alt="Admin"
                 width={120}
                 height={120}
                 className="rounded-full border-2 border-blue-500"
               />
-              </div>
+            </div>
               <div className="flex-1 space-y-4">
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Your Name</label>

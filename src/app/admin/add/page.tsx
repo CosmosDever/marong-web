@@ -12,8 +12,8 @@ export default function AddAdmin() {
   const [imagePreview, setImagePreview] = useState("");
   const [formData, setFormData] = useState({
     fullName: "",
-    email: "",
-    profilePicture: "",
+    gmail: "",
+    picture: "",
     password: "",
     confirmPassword: "",
     birthday: "",
@@ -22,31 +22,38 @@ export default function AddAdmin() {
     role: "",
   });
 
-  // ตรวจสอบ token เมื่อหน้าโหลด
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      window.location.href = "/login"; // Redirect ไปที่หน้า login หากไม่มี token
+      window.location.href = "/login"; // Redirect หากไม่มี token
     }
   }, []);
 
   const handleFileChange = async (event: any) => {
     const file = event.target.files ? event.target.files[0] : null;
-    if (file && file.type.startsWith("image/")) {
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        setErrorMessage("โปรดเลือกไฟล์รูปภาพที่ถูกต้อง");
+        return;
+      }
+
+      if (file.size > 5000000) {
+        setErrorMessage("ขนาดไฟล์รูปภาพใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดเล็กกว่า 5MB");
+        return;
+      }
+
       setImagePreview(URL.createObjectURL(file));
 
       try {
         setLoading(true);
         const publicURL = await uploadImage(file);
-        setFormData({ ...formData, profilePicture: publicURL });
+        setFormData({ ...formData, picture: publicURL });
       } catch (error) {
         console.error(error);
         setErrorMessage("ไม่สามารถอัปโหลดรูปภาพได้ กรุณาลองอีกครั้ง");
       } finally {
         setLoading(false);
       }
-    } else {
-      setErrorMessage("โปรดเลือกไฟล์รูปภาพที่ถูกต้อง");
     }
   };
 
@@ -58,85 +65,74 @@ export default function AddAdmin() {
   const handleSubmit = async (event: any) => {
     event.preventDefault();
 
-    // ดึง token ใหม่จาก localStorage
     const token = localStorage.getItem("token");
-
     if (!token) {
-        setErrorMessage("กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ");
-        window.location.href = "/login"; // Redirect ไปที่หน้า login หากไม่มี token
-        return;
+      setErrorMessage("กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ");
+      window.location.href = "/login";
+      return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-        setErrorMessage("รหัสผ่านไม่ตรงกัน");
-        return;
+      setErrorMessage("รหัสผ่านไม่ตรงกัน");
+      return;
     }
 
     try {
-        setLoading(true);
-        setErrorMessage("");
-        setSuccessMessage("");
+      setLoading(true);
+      setErrorMessage("");
+      setSuccessMessage("");
 
-        const requestBody = {
-            fullName: formData.fullName,
-            gmail: formData.email,
-            picture: formData.profilePicture,
-            password: formData.password,
-            birthday: formData.birthday,
-            telephone: formData.telephone,
-            gender: formData.gender,
-            role: formData.role,
-        };
+      const requestBody = {
+        fullName: formData.fullName,
+        gmail: formData.gmail,
+        picture: formData.picture,
+        password: formData.password,
+        birthday: formData.birthday,
+        telephone: formData.telephone,
+        gender: formData.gender,
+        role: formData.role,
+      };
 
-        let response;
-        try {
-            response = await axios.post("http://localhost:8080/api/admin/add", requestBody, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            console.log("Response Data:", response.data);
-        } catch (err: any) {
-            if (err.response?.status === 401) {
-                setErrorMessage("Session expired. Please log in again.");
-                console.error("Error Response:", err.response?.data);
-                console.error("Error Message:", err.message);
-            } else {
-            }
+      const response = await axios.post(
+        "http://localhost:8080/api/admin/add",
+        requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
+      );
 
-        if (response && response.data.status === "success") {
-            setSuccessMessage(`ทำการเพิ่มบัญชีผู้ใช้สำเร็จ: ${response.data.message}`);
-            setFormData({
-                fullName: "",
-                email: "",
-                profilePicture: "",
-                password: "",
-                confirmPassword: "",
-                birthday: "",
-                telephone: "",
-                gender: "",
-                role: "",
-            });
-        } else {
-            throw new Error(response?.data?.message || "การเพิ่มบัญชีเจ้าหน้าที่ไม่สำเร็จ");
-        }
+      if (response?.data?.status === "success") {
+        const { id, full_name, gmail, role } = response.data.data;
+        setSuccessMessage(
+          `เพิ่มบัญชีสำเร็จ: ID: ${id}, Name: ${full_name}, Email: ${gmail}, Role: ${role}`
+        );
+
+        // รีเซ็ตข้อมูลฟอร์ม
+        setFormData({
+          fullName: "",
+          gmail: "",
+          picture: "",
+          password: "",
+          confirmPassword: "",
+          birthday: "",
+          telephone: "",
+          gender: "",
+          role: "",
+        });
+        setImagePreview("");
+      } else {
+        throw new Error(response?.data?.message || "ไม่สามารถเพิ่มบัญชีได้");
+      }
     } catch (err: any) {
-        console.error(err);
-
-        if (err.response) {
-            const serverMessage = err.response.data?.message || "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์";
-            setErrorMessage(serverMessage);
-        } else if (err.request) {
-            setErrorMessage("ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาลองอีกครั้ง");
-        } else {
-            setErrorMessage(err.message || "เกิดข้อผิดพลาด");
-        }
+      console.error("Error:", err);
+      setErrorMessage(err.response?.data?.message || "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
 
   return (
@@ -172,7 +168,7 @@ export default function AddAdmin() {
               <label className="absolute bottom-0 right-0 bg-blue-500 p-1 rounded-full cursor-pointer">
                 <input
                   type="file"
-                  name="profile_picture"
+                  name="picture"
                   accept="image/*"
                   onChange={handleFileChange}
                   className="hidden"
@@ -204,8 +200,8 @@ export default function AddAdmin() {
                 <label className="block text-gray-700 font-medium mb-2">Email</label>
                 <input
                   type="email"
-                  name="email"
-                  value={formData.email}
+                  name="gmail"
+                  value={formData.gmail}
                   onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-md px-4 py-2"

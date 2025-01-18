@@ -1,14 +1,12 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
-import admin from "../assets/admin.png";
 
 interface User {
   id: number;
   name: string;
   role: string;
-  picture: string;
+  picture: string; // ให้แน่ใจว่าเป็น URL หรือ Path ที่ถูกต้อง
 }
 
 interface UserCardProps {
@@ -24,8 +22,9 @@ const UserCard: React.FC<UserCardProps> = ({ user, onDelete, onClick }) => {
       onClick={onClick}
     >
       <div className="w-1/4 text-left">
-        <Image
-          src={admin}
+        {/* ใช้แท็ก <img> แทน */}
+        <img
+          src={user.picture} // ใช้ picture จากฐานข้อมูล
           alt={user.name}
           width={90}
           height={90}

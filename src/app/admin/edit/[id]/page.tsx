@@ -2,109 +2,144 @@
 
 import { useParams, useRouter } from "next/navigation";
 import Sidebar from "../../../component/sidebar";
-import Image, { StaticImageData } from "next/image";
-import { useState } from "react";
-import admin from "../../../assets/admin.png";
-
-const mockupUser = [
-  { id: 1, Full_name: "macus", role: "Master Admin", picture: admin },
-  { id: 2, Full_name: "boss", role: "Admin", picture: admin },
-  { id: 3, Full_name: "adam", role: "Admin", picture: admin },
-  { id: 4, Full_name: "eva", role: "Admin", picture: admin },
-  { id: 5, Full_name: "john", role: "Admin", picture: admin },
-];
+import Image from "next/image";
+import { useState, useEffect } from "react";
+import { uploadImage } from "../../../component/imageUpload";
 
 export default function AdminProfile() {
   const params = useParams();
   const router = useRouter();
   const userId = Number(params?.id);
 
-  const user = mockupUser.find((user) => user.id === userId);
-
   const [formData, setFormData] = useState({
-    fullName: user?.Full_name || "",
+    fullName: "",
     password: "",
     confirmPassword: "",
-    role: user?.role || "",
-    picture: user?.picture || null as string | StaticImageData | File | null,
+    role: "",
+    picture: null as string | File | null,
   });
 
-  const [imagePreview, setImagePreview] = useState<string | StaticImageData | null>(user?.picture || null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    // Fetch user data from backend
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(`http://localhost:8080/api/admin/${userId}`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data.");
+        }
+
+        const data = await response.json();
+
+        // Populate form data with fetched user information
+        setFormData({
+          fullName: data.fullName,
+          role: data.role,
+          picture: data.picture,
+          password: "",
+          confirmPassword: "",
+        });
+
+        setImagePreview(data.picture || null);
+      } catch (error: any) {
+        setError(error.message || "An unexpected error occurred.");
+      }
+    };
+
+    fetchUserData();
+  }, [userId]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => setImagePreview(reader.result as string | null);
-      reader.readAsDataURL(file);
-      setFormData({ ...formData, picture: file });
+  const handleFileChange = async (event: any) => {
+    const file = event.target.files ? event.target.files[0] : null;
+    if (file && file.type.startsWith("image/")) {
+      setImagePreview(URL.createObjectURL(file));
+
+      try {
+        setLoading(true);
+        const publicURL = await uploadImage(file);
+        setFormData({ ...formData, picture: publicURL });
+      } catch (error) {
+        console.error(error);
+        setError("ไม่สามารถอัปโหลดรูปภาพได้ กรุณาลองอีกครั้ง");
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setError("โปรดเลือกไฟล์รูปภาพที่ถูกต้อง");
     }
   };
 
   const handleSave = async () => {
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
-      return;
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("You are not authorized. Please log in.");
+      return router.push("/login");
     }
-
+  
     setLoading(true);
     setError("");
-
+  
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append("fullName", formData.fullName);
-      formDataToSend.append("password", formData.password);
-      formDataToSend.append("role", formData.role);
+      const payload: Record<string, any> = {};
+      // เตรียมข้อมูลที่ต้องการอัพเดต
+      if (formData.fullName) payload.fullName = formData.fullName;
+      if (formData.password) payload.password = formData.password;
+      if (formData.role) payload.role = formData.role;
       if (formData.picture instanceof File) {
-        formDataToSend.append("picture", formData.picture);
+        payload.picture = await uploadImage(formData.picture);
       }
-
-      const response = await fetch(`/api/admin/update`, {
+  
+      const response = await fetch(`http://localhost:8080/api/admin/${userId}/edit`, {
         method: "PATCH",
-        body: formDataToSend,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
       });
-
+  
       if (!response.ok) {
+        // ถ้า response ไม่ OK ให้โยนข้อผิดพลาด
         throw new Error("Failed to update admin profile.");
       }
-
-      const data = await response.json();
-      console.log("Success:", data);
-      router.push(`/admin/adminprofile/${userId}`);
+  
+      // ใช้ .text() แทน .json() เพื่อ handle กรณีที่ response ไม่มีข้อมูล
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {}; // ป้องกันกรณีไม่มี JSON ใน response
+  
+      // ตรวจสอบว่า data มี status หรือไม่
+      if (data.status === "success") {
+        console.log("Success:", data);
+        // ทำการเปลี่ยนเส้นทางไปยังหน้าที่ต้องการ
+        router.push(`/admin/adminprofile/${userId}`);
+      } else {
+        setError(data.message || "An error occurred while updating the profile.");
+      }
     } catch (error: any) {
       setError(error.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleCancel = () => {
     router.back();
   };
-
-  if (!user) {
-    return (
-      <div className="flex bg-blue-100 h-screen text-black">
-        <Sidebar />
-        <div className="flex-1 flex flex-col items-center justify-center text-xl font-bold">
-          <p>User not found!</p>
-          <button
-            onClick={() => router.back()}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex bg-blue-100 h-screen text-black">
@@ -133,8 +168,6 @@ export default function AdminProfile() {
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
-                    width={250}
-                    height={250}
                     className="hidden"
                   />
                   <svg
