@@ -92,7 +92,6 @@ export default function AdminPage() {
       }
   
       try {
-        // เรียก API DELETE ที่ backend โดยไม่ต้องแก้ไข backend
         const response = await fetch(`http://localhost:8080/api/admin/${selectedUserId}/delete`, {
           method: "DELETE",
           headers: {
@@ -107,14 +106,13 @@ export default function AdminPage() {
   
         const data = await response.json();
         if (data.status === "success") {
-          // หากลบสำเร็จ ให้ลบ admin ออกจาก state
           setUsers(users.filter((user) => user.id !== selectedUserId));
           setShowConfirmPopup(false);
         } else {
           throw new Error("Failed to delete the admin");
         }
       } catch (err: any) {
-        setError(err.message); // แสดงข้อผิดพลาดในกรณีที่เกิดปัญหา
+        setError(err.message); 
       }
     }
   };

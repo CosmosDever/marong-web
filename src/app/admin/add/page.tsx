@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Sidebar from "../../component/sidebar";
 import { uploadImage } from "../../component/imageUpload";
 import axios from "axios";
+import { useParams, useRouter } from "next/navigation";
+
 
 export default function AddAdmin() {
   const [loading, setLoading] = useState(false);
@@ -21,6 +23,8 @@ export default function AddAdmin() {
     gender: "",
     role: "",
   });
+
+  const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -60,6 +64,10 @@ export default function AddAdmin() {
   const handleChange = (event: any) => {
     const { name, value } = event.target;
     setFormData({ ...formData, [name]: value });
+  };
+
+  const handleCancel = () => {
+    router.back();
   };
 
   const handleSubmit = async (event: any) => {
@@ -216,8 +224,9 @@ export default function AddAdmin() {
                   required
                   className="w-full border border-gray-300 rounded-md px-4 py-2"
                 >
-                  <option value="ROLE_master Admin">Master Admin</option>
-                  <option value="ROLE_Admin">Admin</option>
+                   <option value="">Select Role</option>
+                  <option value="master Admin">Master Admin</option>
+                  <option value="Admin">Admin</option>
                 </select>
               </div>
               <div className="mb-4">
@@ -281,16 +290,22 @@ export default function AddAdmin() {
               </div>
             </div>
           </div>
-
+          <div className="text-right space-x-4">
           <button
-            type="submit"
-            className={`w-full bg-blue-500 text-white py-2 px-4 rounded ${
-              loading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            disabled={loading}
-          >
-            {loading ? "Processing..." : "Add Admin"}
-          </button>
+              type="button"
+              onClick={handleCancel}
+              className="mt-10 py-2 px-6 text-sm text-white bg-gray-500 hover:bg-gray-700 rounded-lg"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className={`py-2 px-6 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-700 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              {loading ? "Processing..." : "Add Admin"}
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -16,7 +16,7 @@ export default function AdminProfile() {
     password: "",
     confirmPassword: "",
     role: "",
-    picture: null as string | File | null,
+    picture: "",
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -24,7 +24,6 @@ export default function AdminProfile() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // Fetch user data from backend
     const fetchUserData = async () => {
       try {
         const response = await fetch(`http://localhost:8080/api/admin/${userId}`, {
@@ -40,11 +39,10 @@ export default function AdminProfile() {
 
         const data = await response.json();
 
-        // Populate form data with fetched user information
         setFormData({
-          fullName: data.fullName,
-          role: data.role,
-          picture: data.picture,
+          fullName: data.fullName || "",
+          role: data.role || "",
+          picture: data.picture || "",
           password: "",
           confirmPassword: "",
         });
@@ -63,7 +61,7 @@ export default function AdminProfile() {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileChange = async (event: any) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
     if (file && file.type.startsWith("image/")) {
       setImagePreview(URL.createObjectURL(file));
@@ -71,7 +69,7 @@ export default function AdminProfile() {
       try {
         setLoading(true);
         const publicURL = await uploadImage(file);
-        setFormData({ ...formData, picture: publicURL });
+        setFormData((prev) => ({ ...prev, picture: publicURL }));
       } catch (error) {
         console.error(error);
         setError("ไม่สามารถอัปโหลดรูปภาพได้ กรุณาลองอีกครั้ง");
@@ -89,20 +87,30 @@ export default function AdminProfile() {
       setError("You are not authorized. Please log in.");
       return router.push("/login");
     }
-  
+
     setLoading(true);
     setError("");
-  
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Password and Confirm Password do not match.");
+      setLoading(false);
+      return;
+    }
+    
+
     try {
       const payload: Record<string, any> = {};
-      // เตรียมข้อมูลที่ต้องการอัพเดต
       if (formData.fullName) payload.fullName = formData.fullName;
       if (formData.password) payload.password = formData.password;
       if (formData.role) payload.role = formData.role;
-      if (formData.picture instanceof File) {
-        payload.picture = await uploadImage(formData.picture);
+
+      if (formData.picture) {
+        payload.picture = formData.picture;
+      } else if (imagePreview) {
+        payload.picture = imagePreview;
       }
-  
+      console.log("Payload:", payload);
+
       const response = await fetch(`http://localhost:8080/api/admin/${userId}/edit`, {
         method: "PATCH",
         headers: {
@@ -111,21 +119,17 @@ export default function AdminProfile() {
         },
         body: JSON.stringify(payload),
       });
-  
+
       if (!response.ok) {
-        // ถ้า response ไม่ OK ให้โยนข้อผิดพลาด
         throw new Error("Failed to update admin profile.");
       }
-  
-      // ใช้ .text() แทน .json() เพื่อ handle กรณีที่ response ไม่มีข้อมูล
+
       const text = await response.text();
-      const data = text ? JSON.parse(text) : {}; // ป้องกันกรณีไม่มี JSON ใน response
-  
-      // ตรวจสอบว่า data มี status หรือไม่
+      const data = text ? JSON.parse(text) : {};
+
       if (data.status === "success") {
         console.log("Success:", data);
-        // ทำการเปลี่ยนเส้นทางไปยังหน้าที่ต้องการ
-        router.push(`/admin/adminprofile/${userId}`);
+        router.back();
       } else {
         setError(data.message || "An error occurred while updating the profile.");
       }
@@ -135,7 +139,6 @@ export default function AdminProfile() {
       setLoading(false);
     }
   };
-  
 
   const handleCancel = () => {
     router.back();
@@ -212,18 +215,20 @@ export default function AdminProfile() {
                     className="w-full border border-gray-300 rounded-md px-4 py-2"
                   />
                 </div>
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">Role</label>
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-4 py-2"
-                  >
-                    <option value="Master Admin">Master Admin</option>
-                    <option value="Admin">Admin</option>
-                  </select>
-                </div>
+                <div className="mb-4">
+                <label className="block text-gray-700 font-medium mb-2">Role</label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full border border-gray-300 rounded-md px-4 py-2"
+                >
+                   <option value="">Select Role</option>
+                  <option value="master Admin">Master Admin</option>
+                  <option value="Admin">Admin</option>
+                </select>
+              </div>
               </div>
             </div>
             <div className="text-right space-x-4">
@@ -236,7 +241,9 @@ export default function AdminProfile() {
               <button
                 onClick={handleSave}
                 disabled={loading}
-                className={`mt-10 py-2 px-6 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-700 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={`mt-10 py-2 px-6 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-700 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
                 {loading ? "Saving..." : "Save"}
               </button>

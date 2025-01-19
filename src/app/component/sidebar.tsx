@@ -67,7 +67,7 @@ const Sidebar: FC = () => {
           ))}
         </ul>
       </div>
-      <div className="absolute bottom-0 left-0 w-full p-4">
+      <div className="absolute bottom-0 left-0 w-100% p-4">
         <div className="flex items-center">
           <Image
             src="/adminpfp.png"
