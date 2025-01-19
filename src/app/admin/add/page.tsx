@@ -1,33 +1,86 @@
 "use client";
 
-import { useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
 import Sidebar from "../../component/sidebar";
+import { uploadImage } from "../../component/imageUpload";
+import axios from "axios";
+import { useParams, useRouter } from "next/navigation";
+
 
 export default function AddAdmin() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [imagePreview, setImagePreview] = useState("");
+  const [formData, setFormData] = useState({
+    fullName: "",
+    gmail: "",
+    picture: "",
+    password: "",
+    confirmPassword: "",
+    birthday: "",
+    telephone: "",
+    gender: "",
+    role: "",
+  });
 
-  const handleFileChange = (event: any) => {
-    const file = event.target.files ? event.target.files[0] : null;
-    if (file && file.type.startsWith("image/")) {
-      setImagePreview(URL.createObjectURL(file));
-    } else {
-      setErrorMessage("โปรดเลือกไฟล์รูปภาพที่ถูกต้อง");
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login"; // Redirect หากไม่มี token
     }
+  }, []);
+
+  const handleFileChange = async (event: any) => {
+    const file = event.target.files ? event.target.files[0] : null;
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        setErrorMessage("โปรดเลือกไฟล์รูปภาพที่ถูกต้อง");
+        return;
+      }
+
+      if (file.size > 5000000) {
+        setErrorMessage("ขนาดไฟล์รูปภาพใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดเล็กกว่า 5MB");
+        return;
+      }
+
+      setImagePreview(URL.createObjectURL(file));
+
+      try {
+        setLoading(true);
+        const publicURL = await uploadImage(file);
+        setFormData({ ...formData, picture: publicURL });
+      } catch (error) {
+        console.error(error);
+        setErrorMessage("ไม่สามารถอัปโหลดรูปภาพได้ กรุณาลองอีกครั้ง");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleChange = (event: any) => {
+    const { name, value } = event.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleCancel = () => {
+    router.back();
   };
 
   const handleSubmit = async (event: any) => {
     event.preventDefault();
-    const form = event.target;
-    const formData = new FormData(form);
 
-    const password = formData.get("password");
-    const confirmPassword = formData.get("confirm_password");
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setErrorMessage("กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ");
+      window.location.href = "/login";
+      return;
+    }
 
-    if (password !== confirmPassword) {
+    if (formData.password !== formData.confirmPassword) {
       setErrorMessage("รหัสผ่านไม่ตรงกัน");
       return;
     }
@@ -38,35 +91,57 @@ export default function AddAdmin() {
       setSuccessMessage("");
 
       const requestBody = {
-        fullName: formData.get("full_name"),
-        gmail: formData.get("email"),
-        picture: imagePreview || "",
-        password,
-        birthday: formData.get("birthday"),
-        telephone: formData.get("telephone"),
-        gender: formData.get("gender"),
-        role: formData.get("role"),
+        fullName: formData.fullName,
+        gmail: formData.gmail,
+        picture: formData.picture,
+        password: formData.password,
+        birthday: formData.birthday,
+        telephone: formData.telephone,
+        gender: formData.gender,
+        role: formData.role,
       };
 
-      const response = await axios.post("/auth/addmin", requestBody, {
-        headers: { "Content-Type": "application/json" },
-      });
-
-      setLoading(false);
-
-      if (response.data?.status === "success") {
-        setSuccessMessage(`ทำการเพิ่มบัญชีผู้ใช้สำเร็จ: ${response.data.message}`);
-      } else {
-        setErrorMessage("การเพิ่มบัญชีเจ้าหน้าที่ไม่สำเร็จ กรุณาลองอีกครั้ง");
-      }
-    } catch (error) {
-      setLoading(false);
-      setErrorMessage(
-        (axios.isAxiosError(error) && error.response?.data?.message) || 
-        "การเพิ่มบัญชีเจ้าหน้าที่ไม่สำเร็จ กรุณาลองอีกครั้ง"
+      const response = await axios.post(
+        "http://localhost:8080/api/admin/add",
+        requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
+
+      if (response?.data?.status === "success") {
+        const { id, full_name, gmail, role } = response.data.data;
+        setSuccessMessage(
+          `เพิ่มบัญชีสำเร็จ: ID: ${id}, Name: ${full_name}, Email: ${gmail}, Role: ${role}`
+        );
+
+        // รีเซ็ตข้อมูลฟอร์ม
+        setFormData({
+          fullName: "",
+          gmail: "",
+          picture: "",
+          password: "",
+          confirmPassword: "",
+          birthday: "",
+          telephone: "",
+          gender: "",
+          role: "",
+        });
+        setImagePreview("");
+      } else {
+        throw new Error(response?.data?.message || "ไม่สามารถเพิ่มบัญชีได้");
+      }
+    } catch (err: any) {
+      console.error("Error:", err);
+      setErrorMessage(err.response?.data?.message || "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์");
+    } finally {
+      setLoading(false);
     }
   };
+
 
   return (
     <div className="flex bg-blue-100 h-screen text-black">
@@ -101,7 +176,7 @@ export default function AddAdmin() {
               <label className="absolute bottom-0 right-0 bg-blue-500 p-1 rounded-full cursor-pointer">
                 <input
                   type="file"
-                  name="profile_picture"
+                  name="picture"
                   accept="image/*"
                   onChange={handleFileChange}
                   className="hidden"
@@ -122,7 +197,9 @@ export default function AddAdmin() {
                 <label className="block text-gray-700 font-medium mb-2">Full Name</label>
                 <input
                   type="text"
-                  name="full_name"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-md px-4 py-2"
                 />
@@ -131,7 +208,9 @@ export default function AddAdmin() {
                 <label className="block text-gray-700 font-medium mb-2">Email</label>
                 <input
                   type="email"
-                  name="email"
+                  name="gmail"
+                  value={formData.gmail}
+                  onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-md px-4 py-2"
                 />
@@ -140,10 +219,13 @@ export default function AddAdmin() {
                 <label className="block text-gray-700 font-medium mb-2">Role</label>
                 <select
                   name="role"
+                  value={formData.role}
+                  onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-md px-4 py-2"
                 >
-                  <option value="Master Admin">Master Admin</option>
+                   <option value="">Select Role</option>
+                  <option value="master Admin">Master Admin</option>
                   <option value="Admin">Admin</option>
                 </select>
               </div>
@@ -152,6 +234,8 @@ export default function AddAdmin() {
                 <input
                   type="password"
                   name="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-md px-4 py-2"
                 />
@@ -160,7 +244,9 @@ export default function AddAdmin() {
                 <label className="block text-gray-700 font-medium mb-2">Confirm Password</label>
                 <input
                   type="password"
-                  name="confirm_password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-md px-4 py-2"
                 />
@@ -170,6 +256,8 @@ export default function AddAdmin() {
                 <input
                   type="date"
                   name="birthday"
+                  value={formData.birthday}
+                  onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-md px-4 py-2"
                 />
@@ -179,6 +267,8 @@ export default function AddAdmin() {
                 <input
                   type="text"
                   name="telephone"
+                  value={formData.telephone}
+                  onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-md px-4 py-2"
                 />
@@ -187,25 +277,33 @@ export default function AddAdmin() {
                 <label className="block text-gray-700 font-medium mb-2">Gender</label>
                 <select
                   name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-md px-4 py-2"
                 >
+                  <option value="">Select Gender</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
             </div>
           </div>
-
-          <div className="flex justify-end mt-6">
+          <div className="text-right space-x-4">
+          <button
+              type="button"
+              onClick={handleCancel}
+              className="mt-10 py-2 px-6 text-sm text-white bg-gray-500 hover:bg-gray-700 rounded-lg"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
               disabled={loading}
-              className={`py-2 px-4 text-white bg-blue-500 rounded-lg hover:bg-blue-700 ${
-                loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`py-2 px-6 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-700 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              {loading ? "Loading..." : "Add Admin"}
+              {loading ? "Processing..." : "Add Admin"}
             </button>
           </div>
         </form>
