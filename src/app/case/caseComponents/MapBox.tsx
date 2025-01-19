@@ -17,6 +17,8 @@ const MapBox: React.FC<MapViewProps> = ({ coordinates, description }) => {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
 
+  console.log(coordinates)
+
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
