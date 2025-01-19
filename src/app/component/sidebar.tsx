@@ -3,10 +3,10 @@
 import { FC } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname,useRouter } from "next/navigation"; // Import usePathname to get the current route
+import { usePathname,useRouter } from "next/navigation";
 
 const Sidebar: FC = () => {
-  const currentPath = usePathname(); // Get the current route path
+  const currentPath = usePathname();
   const router = useRouter();
   
   const logout = (): void => {
