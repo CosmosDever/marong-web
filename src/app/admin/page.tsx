@@ -60,7 +60,7 @@ export default function AdminPage() {
             id: user.id,
             name: user.fullName,
             role: user.role.replace("ROLE_", ""),
-            picture: user.picture, // Ensure this points to the correct image URL or path
+            picture: user.picture,
           }));
           setUsers(formattedUsers);
         } else {

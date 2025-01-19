@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 
 interface User {
   id: number;
-  picture: string; // แก้เป็น string แทน any เนื่องจากเป็น URL ของรูป
+  picture: string;
   gmail: string;
   fullName: string;
   birthday: string;
