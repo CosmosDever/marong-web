@@ -122,8 +122,8 @@ const Sidebar: FC = () => {
               ))}
             </ul>
           </div>
-          <div className="flex flex-col justify-end w-full p-4 mb-[2vh]" onClick={() => handleCardClick()}>
-            <div className="flex items-center">
+          <div className="flex flex-col justify-end w-full p-4 mb-[2vh]" >
+            <div className="flex items-center" onClick={() => handleCardClick()}>
               <img
                 src={userData.picture || "/adminpfp.png"}
                 alt="admin profile picture"
