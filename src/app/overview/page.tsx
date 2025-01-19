@@ -6,6 +6,7 @@ import Sidebar from "../component/Sidebar";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
+
 mapboxgl.accessToken = "pk.eyJ1IjoicHJhbTQ3IiwiYSI6ImNtNXRzMzdnZDEwZjkyaXEwbzU3Y2J2cnQifQ.3e4ZNgqhVduJkxgtzMCkUw"; // Replace with your Mapbox token
 
 const OverviewPage: FC = (): JSX.Element => {

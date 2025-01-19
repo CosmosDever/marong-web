@@ -5,6 +5,8 @@ import Image from "next/image";
 import Sidebar from "../component/Sidebar";
 import Link from "next/link";
 
+import { useRouter } from "next/navigation";
+
 interface News {
   id: number;
   title: string;
@@ -16,6 +18,9 @@ const NewsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [formData, setFormData] = useState<any>({});
+  const [notification, setNotification] = useState<any>(null);
+  const router = useRouter();
 
   // useEffect(() => {
   //   const fetchNews = async () => {
@@ -73,6 +78,11 @@ const NewsPage = () => {
     setIsLoading(false);
   }, []);
 
+  const handleAddNewsClick = () => {
+    router.push("/news/addnews"); // Navigate to /news/addnews
+  };
+
+
   const handleDeleteClick = (rowId: number) => {
     setSelectedRowId(rowId);
     setIsPopupVisible(true);
@@ -107,9 +117,9 @@ const NewsPage = () => {
 
               {/* Add News Button */}
               <button
-              onClick={() => alert("Add News Clicked!")}
+              onClick={handleAddNewsClick} // Call the handler when the button is clicked
               className="text-blue-600 flex items-center mr-10"
-              >
+            >
               <Image
                 src="/Addbtn.png" // Path to your image
                 alt="Add News"
