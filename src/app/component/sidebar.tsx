@@ -84,7 +84,7 @@ const Sidebar: FC = () => {
               </div>
             </div>
             <div className="flex items-center mt-3 py-2 rounded-lg group hover:bg-blue-100 ">
-              <Image
+                <Image
                 src="/Logout.png"
                 alt="logout icon"
                 width={25}
@@ -93,28 +93,12 @@ const Sidebar: FC = () => {
               />
               <a
                 href="#"
-                className="ml-2 text-gray-600 flex items-center group-hover:text-blue-800 active:bg-blue-200"
+                className="ml-2 text-gray-600 hover:text-gray-800 flex items-center" onClick={logout}
               >
-                <i className="fas fa-sign-out-alt mr-2"></i>
                 Log Out
               </a>
             </div>
           </div>
-        </div>
-        <div className="flex items-center mt-3">
-          <Image
-            src="/Logout.png"
-            alt="logout icon"
-            width={25}
-            height={25}
-            className="rounded-full"
-          />
-          <a
-            href="#"
-            className="ml-2 text-gray-600 hover:text-gray-800 flex items-center" onClick={logout}
-          >
-            Log Out
-          </a>
         </div>
       </div>
     {/* Empty Area */}
