@@ -3,14 +3,15 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Sidebar from "../component/sidebar";
-import UserCard from "../component/admincard"; // Import UserCard ที่แยกออกมา
+import UserCard from "../component/admincard";
 import Image from "next/image";
+
 
 interface User {
   id: number;
   name: string;
   role: string;
-  picture: string; // Make sure this is a valid URL or path
+  picture: string;
 }
 
 const LoadingComponent = () => (
