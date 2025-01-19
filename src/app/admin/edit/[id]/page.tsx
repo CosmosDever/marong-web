@@ -7,11 +7,11 @@ import { useState } from "react";
 import admin from "../../../assets/admin.png";
 
 const mockupUser = [
-  { id: 1, ID: "admin", Full_name: "macus", role: "Master Admin", picture: admin },
-  { id: 2, ID: "admin2", Full_name: "boss", role: "Admin", picture: admin },
-  { id: 3, ID: "admin3", Full_name: "adam", role: "Admin", picture: admin },
-  { id: 4, ID: "admin4", Full_name: "eva", role: "Admin", picture: admin },
-  { id: 5, ID: "admin5", Full_name: "john", role: "Admin", picture: admin },
+  { id: 1, Full_name: "macus", role: "Master Admin", picture: admin },
+  { id: 2, Full_name: "boss", role: "Admin", picture: admin },
+  { id: 3, Full_name: "adam", role: "Admin", picture: admin },
+  { id: 4, Full_name: "eva", role: "Admin", picture: admin },
+  { id: 5, Full_name: "john", role: "Admin", picture: admin },
 ];
 
 export default function AdminProfile() {
@@ -23,7 +23,6 @@ export default function AdminProfile() {
 
   const [formData, setFormData] = useState({
     fullName: user?.Full_name || "",
-    id: user?.ID || "",
     password: "",
     confirmPassword: "",
     role: user?.role || "",
@@ -60,7 +59,6 @@ export default function AdminProfile() {
 
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append("id", formData.id);
       formDataToSend.append("fullName", formData.fullName);
       formDataToSend.append("password", formData.password);
       formDataToSend.append("role", formData.role);
@@ -69,7 +67,7 @@ export default function AdminProfile() {
       }
 
       const response = await fetch(`/api/admin/update`, {
-        method: "PUT",
+        method: "PATCH",
         body: formDataToSend,
       });
 
@@ -88,7 +86,7 @@ export default function AdminProfile() {
   };
 
   const handleCancel = () => {
-    router.push(`/admin/adminprofile/${userId}`);
+    router.back();
   };
 
   if (!user) {
@@ -135,6 +133,8 @@ export default function AdminProfile() {
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
+                    width={250}
+                    height={250}
                     className="hidden"
                   />
                   <svg
@@ -157,17 +157,6 @@ export default function AdminProfile() {
                     value={formData.fullName}
                     onChange={handleInputChange}
                     className="w-full border border-gray-300 rounded-md px-4 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">ID</label>
-                  <input
-                    type="text"
-                    name="id"
-                    value={formData.id}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-4 py-2"
-                    disabled
                   />
                 </div>
                 <div>

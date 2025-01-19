@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/axios": "^0.14.4",
     "axios": "^1.7.9",
     "mapbox-gl": "^3.9.3",
     "next": "15.1.3",
