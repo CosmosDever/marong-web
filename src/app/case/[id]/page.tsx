@@ -3,6 +3,7 @@ const caturl =
 import CaseControl from "../caseComponents/CaseControl";
 import Sidebar from "@/app/component/sidebar";
 import { caseId } from "@/app/api/case/{id}/route";
+import MapBox from "../caseComponents/MapBox";
 
 const detail = async ({ params }: { params: { id: string } }) => {
   const { id } = await params;
@@ -17,7 +18,7 @@ const detail = async ({ params }: { params: { id: string } }) => {
 
   return (
     <>
-      <div className="flex min-h-screen overflow-x-hidden overflow-y-hidden ">
+      <div className="flex min-h-screen overflow-x-hidden overflow-y-hidden pb-[4vh]">
         <Sidebar />
         <div className="pl-[3vw] pb-[6vh]">
           {/* Title */}
@@ -65,14 +66,18 @@ const detail = async ({ params }: { params: { id: string } }) => {
             <h1 className="font-semibold">Detail:</h1>
             <p className="w-10/12 ">{caseData.detail}</p>
             {/* Location */}
-            <div className="w-[50vw] flex mt-[3vh] ml-[2vw]">
-              <img src="/map.png" alt="Map pic" width={200} height={200} />
+            <div className="relative w-[50vw] h-full flex mt-[3vh] ml-[2vw] overflow-y-hidden">
+              <div className="flex w-[20vw] h-[20vw]">
+                <MapBox
+                  coordinates={
+                    caseData.location.coordinates as [number, number]
+                  }
+                  description={caseData.location.description}
+                />
+              </div>
               <div className="flex flex-col ml-[2vw]">
                 <h1 className="font-semibold">Location:</h1>
-                <p className="">
-                  {caseData.location.description}
-                  {/* {caseData.location.coordinates} */}
-                </p>
+                <p className="">{caseData.location.description}</p>
               </div>
             </div>
           </div>
@@ -87,4 +92,3 @@ export default detail;
 function updateCaseStatus(id: string) {
   throw new Error("Function not implemented.");
 }
-
