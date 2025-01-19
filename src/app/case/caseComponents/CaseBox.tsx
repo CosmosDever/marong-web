@@ -19,7 +19,7 @@ const CaseBox = async () => {
               <div className="w-full">
                 <div
                   key={item.case_id}
-                  className="grid grid-cols-5 gap-6 items-center h-[16vh] w-[70vw] mb-[3vh] bg-gray-200 border-white border-4 rounded-xl text-black text-base
+                  className="grid grid-cols-6 gap-6 items-center h-[16vh] w-[70vw] mb-[3vh] bg-gray-200 border-white border-4 rounded-xl text-black text-base
                   hover:border-blue-600 hover:bg-white active:border-blue-900"
                 >
                   <div className="ml-[3vw] ">
@@ -33,8 +33,9 @@ const CaseBox = async () => {
                   </div>
                   <p className="text-center">{item.case_id}</p>
                   <p className="">{item.category}</p>
-                  <p className="">{item.date_opened}</p>
-                  <p className="pl-[4vw]">{item.status}</p>
+                  <p className="">{item.damage_value}</p>
+                  <p className="">{new Date(item.date_opened).toLocaleDateString('en-GB')}</p>
+                  <p className="pl-[2vw]">{item.status}</p>
                 </div>
               </div>
             </Link>

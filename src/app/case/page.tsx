@@ -19,17 +19,27 @@ const casePage = () => {
           {/* Body */}
           <div className="h-[80vh] w-full">
             {/* label */}
-            <div className="pl-[9vw] pr-[15vw] grid grid-cols-5 gap-x-10 h-[3vh] w-full text-sm font-bold">
+
+            <div className="pl-[9vw] pr-[15vw] grid grid-cols-6 gap-5 h-[3vh] w-full text-sm font-bold">
               <p className="">Picture</p>
-              <p className="ml-[1vw] pl-[3vw]">ID</p>
-              <p className="pl-[1vw]">Type</p>
-              {/* <p className="">Detail</p> */}
-              <p className="pl-[2vw]">Date</p>
+              <p className="ml-[1vw] pl-[2vw]">ID</p>
+              <p className="pl-[0.7vw]">Type</p>
+              <p className="pl-[2.5vw] overflow-visible whitespace-nowrap">
+                Damage value
+              </p>
+              <p className="pl-[4vw]">Date</p>
               <p className="pl-[8vw]">Status</p>
+              <p className="pl-[2vw]">ID</p>
+              <p className="">Type</p>
+              <p className="">Damage value</p>
+              <p className="pl-[1vw]">Date</p>
+              <p className="pl-[4vw]">Status</p>
             </div>
             {/* box */}
-            <div className="h-full w-full bg-[#dee3f6] border-body-border border-t-4 rounded 
-            ">
+            <div
+              className="h-full w-full bg-[#dee3f6] border-body-border border-t-4 rounded 
+            "
+            >
               <CaseBox />
             </div>
           </div>
