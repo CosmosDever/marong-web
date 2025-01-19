@@ -1,19 +1,79 @@
 "use client";
 
-import { FC, useState } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter for navigation
-import Head from "next/head";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Sidebar from "../component/Sidebar";
+import Link from "next/link";
 
-const NewsPage: FC = () => {
-  const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
+interface News {
+  id: number;
+  title: string;
+  date: string;
+}
+
+const NewsPage = () => {
+  const [news, setNews] = useState<News[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
-  const [rows, setRows] = useState(Array.from({ length: 5 }, (_, index) => `00${index + 4}`));
-  const [selectedSidebarItem, setSelectedSidebarItem] = useState<string>("News");
-  const router = useRouter(); // Initialize the router
 
-  const handleDeleteClick = (rowId: string) => {
+  // useEffect(() => {
+  //   const fetchNews = async () => {
+  //     try {
+  //       const response = await fetch("/api/news");
+  //       if (response.ok) {
+  //         const data = await response.json();
+  //         setNews(data.data); // Use the `data` property from the API response
+  //       } else {
+  //         console.error("Failed to fetch news data");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching news:", error);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   fetchNews();
+  // }, []);
+
+  const newsData = {
+    status: "success",
+    data: [
+      {
+        id: 1,
+        title: "Road Repair Scheduled",
+        picture: "https://storage.googleapis.com/traffy_public_bucket/attachment/2025-01/f107145c5f893f2b7ca9a00a40d6abbe8fac04eb.jpg",
+        content: "The government has scheduled road repairs for the upcoming week.",
+        type: "Road",
+        date: "2024-12-30",
+        location: {
+          coordinates: [100.4171, 13.7367],  // Add the coordinates here
+          description: "Bangkok, Thailand"
+        }
+      },
+      {
+        id: 2,
+        title: "Pavement Damage Alert",
+        picture: "https://storage.googleapis.com/traffy_public_bucket/attachment/2025-01/f107145c5f893f2b7ca9a00a40d6abbe8fac04eb.jpg",
+        content: "Authorities have issued an alert about damaged pavements in downtown.",
+        type: "Pavement",
+        date: "2024-12-29",
+        location: {
+          coordinates: [100.5183, 13.7361],  // Add the coordinates here
+          description: "Downtown Bangkok, Thailand"
+        }
+      }
+    ]
+  };
+  
+  
+  useEffect(() => {
+    setNews(newsData.data);
+    setIsLoading(false);
+  }, []);
+
+  const handleDeleteClick = (rowId: number) => {
     setSelectedRowId(rowId);
     setIsPopupVisible(true);
   };
@@ -24,36 +84,22 @@ const NewsPage: FC = () => {
   };
 
   const handleConfirm = () => {
-    if (selectedRowId) {
-      setRows((prevRows) => prevRows.filter((id) => id !== selectedRowId));
+    if (selectedRowId !== null) {
+      setNews((prevNews) => prevNews.filter((item) => item.id !== selectedRowId));
     }
     setIsPopupVisible(false);
     setSelectedRowId(null);
   };
 
-
-
   return (
     <>
-      <Head>
-        <title>News Page</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <link
-          rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap"
-          rel="stylesheet"
-        />
-      </Head>
       <div className="bg-gray-100 flex h-screen">
         {/* Sidebar */}
         <Sidebar />
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col bg-gray-100 h-full">
-          <div className="p-6">
+            <div className="p-6">
             {/* Header Section */}
             <div className="flex items-center justify-between w-[87%] mx-auto">
               {/* Heading */}
@@ -61,100 +107,124 @@ const NewsPage: FC = () => {
 
               {/* Add News Button */}
               <button
-                // onClick={() => setIsAddNewsVisible(true)} // Assuming this triggers the popup
-                className="text-blue-600 flex items-center mr-10"
+              onClick={() => alert("Add News Clicked!")}
+              className="text-blue-600 flex items-center mr-10"
               >
-                <Image
-                  src="/Addbtn.png" // Path to your image
-                  alt="Add News"
-                  width={30} // Adjust width as needed
-                  height={30} // Adjust height as needed
-                  className="mr-2" // Adds margin to the right of the image to space it from the text
-                />
-                <span className="translate-y-1">Add News</span> {/* Moves text down by 1% */}
+              <Image
+                src="/Addbtn.png" // Path to your image
+                alt="Add News"
+                width={30} // Adjust width as needed
+                height={30} // Adjust height as needed
+                className="mr-2" // Adds margin to the right of the image to space it from the text
+              />
+              <span className="translate-y-1">Add News</span> {/* Moves text down by 1% */}
               </button>
             </div>
 
             {/* Table Header */}
-            <table className="w-[85%] mx-auto table-fixed" style={{ height: "120px" }}>
+            <table className="w-[90%] mx-auto table-fixed" style={{ height: "120px" }}>
               <thead>
-                <tr className="text-gray-500">
-                  <th className="p-2 pr-[13%]">Picture</th>
-                  <th className="p-2 pr-[7%]">ID</th>
-                  <th className="p-2 pr-[1%]">Title</th>
-                  <th className="p-2 pr-[1%]">Date</th>
-                  <th className="p-2 pr-[30%]" style={{ width: "270px", height: "120px" }}>
-                    Edit
-                  </th>
-                </tr>
+              <tr className="text-gray-500">
+                <th className="p-2 text-center align-middle" // Centers horizontally and vertically
+                    style={{ width: "190px", height: "120px" }}>Picture</th>
+                <th className="p-2 text-center align-middle" // Centers horizontally and vertically
+                    style={{ width: "200px", height: "120px" }}>ID</th>
+                <th className="p-2 text-center align-middle" // Centers horizontally and vertically
+                    style={{ width: "200px", height: "120px" }}>Title</th>
+                <th className="p-2 text-center align-middle" // Centers horizontally and vertically
+                    style={{ width: "260px" }}>Date</th>
+                <th className="p-2 pr-[16%]" style={{ width: "270px", height: "120px" }}>
+                Edit
+                </th>
+              </tr>
               </thead>
             </table>
-          </div>
+            </div>
 
           {/* Table Content */}
           <div
             className="flex-1 mt-4 p-4 rounded-lg bg-[#dee3f6] h-[80%] w-[83.4%] absolute left-61 right-0 bottom-0 overflow-auto border-t-4"
             style={{ borderTopColor: "#BAC5ED" }}
           >
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <tbody>
-                  {rows.map((rowId) => (
-                    <tr
-                      key={rowId}
-                      className="bg-[#E9ECF9] rounded-lg shadow-lg"
-                      style={{
-                        width: "90%",
-                        margin: "1rem auto",
-                        display: "table",
-                      }}
-                    >
-                      <td
-                        className="p-2 border pl-[3%] w-60 h-120"
-                        style={{ width: "280px", height: "120px" }}
+            {isLoading ? (
+              <div className="text-center">Loading...</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <tbody>
+                    {news.map((item) => (
+                      <tr
+                        key={item.id}
+                        className="bg-[#E9ECF9] rounded-lg shadow-lg"
+                        style={{
+                          width: "90%",
+                          margin: "1rem auto",
+                          display: "table",
+                        }}
                       >
-                        <Image
-                          src="/newsimage.png" // You can replace with dynamic logic as needed
-                          alt="news image"
-                          width={150}
-                          height={100}
-                          className="rounded-lg"
-                          style={{ objectFit: 'cover' }} // Ensures the image covers the area without stretching
-                        />
-                      </td>
-                      <td className="p-2 border" style={{ width: "215px", height: "120px" }}>
-                        {rowId}
-                      </td>
-                      <td className="p-2 border" style={{ width: "200px", height: "120px" }}>
-                        Detail
-                      </td>
-                      <td className="p-2 border">Date</td>
-                      <td className="p-2 border">
-                        <a href="/news/editnews" className="text-blue-600 hover:underline">
+                        {/* Static Image */}
+                        <td
+                          className="p-2 border pl-[3%] w-60 h-120"
+                          style={{ width: "200px", height: "120px" }}
+                        >
                           <Image
-                            src="/editbutton.png"
-                            alt="Edit Button"
-                            width={20}
-                            height={20}
-                            className="inline-block"
+                            src="/newsimage.png" // Static image path
+                            alt="news image"
+                            width={150}
+                            height={100}
+                            className="rounded-lg"
+                            style={{ objectFit: "cover" }}
                           />
-                        </a>
-                      </td>
-
-                      <td className="p-2 border">
-                        <button
-                          onClick={() => handleDeleteClick(rowId)}
-                          className="text-red-600 ml-2"
-                          style={{ color: "E03515"}}>
-                          
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        </td>
+                        {/* Dynamic Data */}
+                        <td
+                          className="p-2 border text-center align-middle" // Centers horizontally and vertically
+                          style={{ width: "190px", height: "120px" }}
+                        >
+                          {item.id}
+                        </td>
+                        <td
+                          className="p-2 border text-center align-middle" // Centers horizontally and vertically
+                          style={{ width: "200px", height: "120px" }}
+                        >
+                          {item.title}
+                        </td>
+                        <td
+                          className="p-2 border text-center align-middle" // Centers horizontally and vertically
+                          style={{ width: "260px" }} // Adjusted width for date column
+                        >
+                          {item.date}
+                        </td>
+                        {/* Edit Column */}
+                        <td className="p-2 border text-center align-middle" style={{ width: "100px" }}>
+                          <Link
+                            href={`/news/${item.id}/edit`}
+                            className="text-blue-600 hover:underline"
+                          >
+                            <Image
+                              src="/editbutton.png"
+                              alt="Edit Button"
+                              width={20}
+                              height={20}
+                              className="inline-block"
+                            />
+                          </Link>
+                        </td>
+                        {/* Delete Column */}
+                        <td className="p-2 border">
+                          <button
+                            onClick={() => handleDeleteClick(item.id)}
+                            className="text-red-600 ml-2"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
 
