@@ -140,6 +140,7 @@ export default function AddAdmin() {
     } finally {
       setLoading(false);
     }
+    router.back();
   };
 
 
