@@ -32,7 +32,7 @@ const casePage = () => {
               <p className="pl-[2vw]">ID</p>
               <p className="">Type</p>
               <p className="">Damage value</p>
-              <p className="pl-[1vw]">Date</p>
+              <p className="pl-[2vw]">Date</p>
               <p className="pl-[4vw]">Status</p>
             </div>
             {/* box */}

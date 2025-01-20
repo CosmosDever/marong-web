@@ -8,10 +8,9 @@ mapboxgl.accessToken = "pk.eyJ1IjoicHJhbTQ3IiwiYSI6ImNtNXRzMzdnZDEwZjkyaXEwbzU3Y
 
 interface MapViewProps {
   coordinates: [number, number];
-  description: string;
 }
 
-const MapBox: React.FC<MapViewProps> = ({ coordinates, description }) => {
+const MapBox: React.FC<MapViewProps> = ({ coordinates}) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
@@ -30,7 +29,7 @@ const MapBox: React.FC<MapViewProps> = ({ coordinates, description }) => {
 
       mapRef.current.on("load", () => setIsMapLoaded(true));
 
-      const popup = new mapboxgl.Popup().setText(description);
+      const popup = new mapboxgl.Popup();
       markerRef.current = new mapboxgl.Marker()
         .setLngLat(coordinates)
         .setPopup(popup)
@@ -42,14 +41,14 @@ const MapBox: React.FC<MapViewProps> = ({ coordinates, description }) => {
       markerRef.current?.remove();
       mapRef.current?.remove();
     };
-  }, [coordinates, description]); 
+  }, [coordinates]); 
 
   useEffect(() => {
     if (isMapLoaded && markerRef.current) {
       markerRef.current.setLngLat(coordinates);
-      markerRef.current.getPopup()?.setText(description);
+      markerRef.current.getPopup();
     }
-  }, [coordinates, description, isMapLoaded]); 
+  }, [coordinates, isMapLoaded]); 
 
   return <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />;
 };
