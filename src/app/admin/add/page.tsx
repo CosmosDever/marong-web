@@ -224,7 +224,7 @@ export default function AddAdmin() {
                   required
                   className="w-full border border-gray-300 rounded-md px-4 py-2"
                 >
-                   <option value="">Select Role</option>
+                   <option value="" disabled>Select Role</option>
                   <option value="master Admin">Master Admin</option>
                   <option value="Admin">Admin</option>
                 </select>
@@ -282,7 +282,7 @@ export default function AddAdmin() {
                   required
                   className="w-full border border-gray-300 rounded-md px-4 py-2"
                 >
-                  <option value="">Select Gender</option>
+                  <option value="" disabled>Select Gender</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
