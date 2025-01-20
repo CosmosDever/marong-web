@@ -171,7 +171,7 @@ const CaseById: React.FC = () => {
                   <MapBox
                     coordinates={[
                       // MOCK
-                      -122.414, 37.776,
+                      100.5018, 13.7563
                       // parseFloat(cases?.[0]?.location.coordinates[0] || "0"),
                       // parseFloat(cases?.[0]?.location.coordinates[1] || "0"),
                     ]}
