@@ -14,12 +14,19 @@ export default function LoginPage() {
         localStorage.setItem("token", token);
     };
 
+    const extractToken = (data: any): string | null => {
+        if (data?.message?.token && Array.isArray(data.message.token) && data.message.token.length > 0) {
+            return data.message.token[0];
+        }
+        return null;
+    };
+
     const handleSubmit = async (e: React.FormEvent): Promise<void> => {
         e.preventDefault();
         setErrorMessage("");
 
         try {
-            const response = await fetch("/api/login", {
+            const response = await fetch("http://localhost:8080/api/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -28,13 +35,22 @@ export default function LoginPage() {
             });
 
             if (!response.ok) {
-                throw new Error("Invalid credentials");
+                if (response.status === 401) {
+                    throw new Error("Unauthorized: Invalid credentials");
+                } else {
+                    throw new Error("An error occurred while logging in.");
+                }
             }
 
             const data = await response.json();
-            const token: string = data.data.token[0];
-            setToken(token);
-            router.push("/overview");
+
+            const token = extractToken(data);
+            if (token) {
+                setToken(token);
+                router.push("/overview");
+            } else {
+                throw new Error("Unexpected API response structure");
+            }
         } catch (error: any) {
             setErrorMessage(error.message || "An error occurred. Please try again.");
         }
