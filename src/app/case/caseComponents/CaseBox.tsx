@@ -18,7 +18,7 @@ interface CaseData {
   location: LocationData;
   dateOpened: string;
   dateClosed: string | null;
-  reportStatus: string;
+  status: string;
   damage_value: string;
 }
 
@@ -125,7 +125,7 @@ const CaseBox: React.FC = () => {
                   <p className="">
                     {new Date(item.dateOpened).toLocaleDateString("en-GB")}
                   </p>
-                  <p className="pl-[2vw]">{item.reportStatus}</p>
+                  <p className="pl-[2vw]">{item.status}</p>
                 </div>
               </div>
             </Link>

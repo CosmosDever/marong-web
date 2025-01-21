@@ -82,9 +82,9 @@ export async function postInProgress(detail: string) {
   );
 }
 
-export async function postDone(detail2: string, imageDone: string | null) {
-  // console.log("Request body received:", { detail2 });
-  if (!detail2 || !imageDone) {
+export async function postDone(detailDone: string, imageDone: string | null) {
+  // console.log("Request body received:", { detaiDone });
+  if (!detailDone || !imageDone) {
     const response = {
       status: "error",
       message:
@@ -95,14 +95,14 @@ export async function postDone(detail2: string, imageDone: string | null) {
     return NextResponse.json(response);
   }
 
-  if (detail2 && imageDone) {
+  if (detailDone && imageDone) {
     const response = {
       status: "success",
       message: "Case status updated to 'Done' successfully.",
       data: {
         case_id: "101",
         status: "Done",
-        detail: detail2,
+        detail: detailDone,
         picture: imageDone,
         date_updated: "2024-12-22T10:30:00Z",
       },
@@ -127,13 +127,9 @@ const CaseControl = () => {
   const [isInProgressPopupVisible, setIsInProgressPopupVisible] =
     useState(false);
   const [isDonePopupVisible, setIsDonePopupVisible] = useState(false);
-  const [detail, setDetail] = useState(
-    "กำลังส่งเรื่องให้หน่วยงานที่เกี่ยวข้องเพื่อทำการแก้ไขครับ"
-  );
-  const [detail2, setDetail2] = useState("ได้รับการแก้ไขโดยการซ่อมเรียบร้อย");
-  const [detailCancel, setDetailCancel] = useState(
-    "ตรวจสอบแล้วไม่ตรงกับที่รายงาน"
-  );
+  const [detailInProgress, setDetailInProgress] = useState(String);
+  const [detailDone, setDetailDone] = useState(String);
+  const [detailCancel, setDetailCancel] = useState(String);
   const [imageDone, setImageDone] = useState<string | null>(null);
 
   const togglePopup = (type: "cancel" | "inProgress" | "done") => {
@@ -146,9 +142,9 @@ const CaseControl = () => {
     }
   };
 
-  const handleConfirm = async (type: "cancel" | "inProgress" | "done") => {
+  const handleSubmit = async (type: "cancel" | "inProgress" | "done") => {
     if (type === "cancel") {
-      // console.log(`Cancel Pressed`);
+      console.log(`Cancel Pressed`);
       try {
         const response = await updateCancel("Cancelled", detailCancel);
         if (detailCancel) {
@@ -161,10 +157,9 @@ const CaseControl = () => {
       }
     } else if (type === "inProgress") {
       try {
-        const response = await postInProgress(detail);
-        if (response && detail) {
-          // console.log("InProgress pressed");
-          // console.log(detail);
+        const response = await postInProgress(detailInProgress);
+        if (response && detailInProgress) {
+          console.log("InProgress pressed : ",detailInProgress);
           setIsInProgressPopupVisible(false);
           setIsInProgressBtnVisible(false);
           setIsDoneBtnVisible(true);
@@ -176,11 +171,10 @@ const CaseControl = () => {
       }
     } else if (type === "done") {
       try {
-        const response = await postDone(detail2, imageDone);
+        const response = await postDone(detailDone, imageDone);
 
-        if (response && detail2) {
-          // console.log("Done pressed");
-          // console.log(detail2);
+        if (response && detailDone) {
+          console.log("Done pressed : ",detailDone);
           setIsDonePopupVisible(false);
         } else {
           console.error("Failed to update case status.");
@@ -227,7 +221,7 @@ const CaseControl = () => {
       {isCancelPopupVisible && (
         <CancelPopup
           message="Are you sure you want to cancel?"
-          onConfirm={() => handleConfirm("cancel")}
+          onSubmit={() => handleSubmit("cancel")}
           onCancel={handleCancel}
           detailCancel={detailCancel}
           setDetailCancel={setDetailCancel}
@@ -236,19 +230,19 @@ const CaseControl = () => {
       {isInProgressPopupVisible && (
         <InProgressPopup
           message="Are you sure you want to change status to In progress?"
-          onConfirm={() => handleConfirm("inProgress")}
+          onSubmit={() => handleSubmit("inProgress")}
           onCancel={handleCancel}
-          detail={detail}
-          setDetail={setDetail}
+          detail={detailInProgress}
+          setDetail={setDetailInProgress}
         />
       )}
       {isDonePopupVisible && (
         <DonePopup
           message="Are you sure you want to change status to Done?"
-          onConfirm={() => handleConfirm("done")}
+          onSubmit={() => handleSubmit("done")}
           onCancel={handleCancel}
-          detail2={detail2}
-          setDetail2={setDetail2}
+          detailDone={detailDone}
+          setDetailDone={setDetailDone}
           imageDone={imageDone}
           setImageDone={setImageDone}
         />

@@ -1,20 +1,20 @@
 import React from "react";
 interface PopupProps {
   message: string;
-  onConfirm: () => void;
+  onSubmit: () => void;
   onCancel: () => void;
-  detail2: string;
-  setDetail2: React.Dispatch<React.SetStateAction<string>>;
+  detailDone: string;
+  setDetailDone: React.Dispatch<React.SetStateAction<string>>;
   imageDone: string | null;
   setImageDone: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const DonePopup: React.FC<PopupProps> = ({
   message,
-  onConfirm,
+  onSubmit,
   onCancel,
-  detail2,
-  setDetail2,
+  detailDone,
+  setDetailDone,
   imageDone,
   setImageDone,
 }) => {
@@ -23,9 +23,9 @@ const DonePopup: React.FC<PopupProps> = ({
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImageDone(reader.result as string); // แปลงรูปเป็น base64
+        setImageDone(reader.result as string); 
       };
-      reader.readAsDataURL(file); // อ่านไฟล์
+      reader.readAsDataURL(file); 
     }
   };
 
@@ -37,8 +37,8 @@ const DonePopup: React.FC<PopupProps> = ({
           <textarea
             className="my-[2vh] px-[1vw] py-[.5vh] w-full h-[20vh] text-wrap border-black border-2"
             placeholder="Detail..."
-            value={detail2}
-            onChange={(e) => setDetail2(e.target.value)}
+            value={detailDone}
+            onChange={(e) => setDetailDone(e.target.value)}
           ></textarea>
           <input type="file" accept="image/*" onChange={handleImageChange} />
         </form>
@@ -58,11 +58,11 @@ const DonePopup: React.FC<PopupProps> = ({
             Cancel
           </button>
           <button
-            onClick={onConfirm}
+            onClick={onSubmit}
             className="px-6 py-2 bg-green-500 text-white rounded-lg hover:opacity-80"
             type="submit"
           >
-            Confirm
+            Submit
           </button>
         </div>
       </div>
