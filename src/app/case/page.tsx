@@ -1,6 +1,5 @@
 import Sidebar from "../component/sidebar";
 import CaseBox from "./caseComponents/CaseBox";
-import Searchbar from "./caseComponents/Searchbar";
 
 const casePage = () => {
   return (
@@ -12,8 +11,8 @@ const casePage = () => {
           {/* Head */}
           <div className="h-[20vh] w-full">
             <h1 className="pt-[4vh] pl-[8vw] text-3xl font-bold">CASE</h1>
+            {/* Empty Area */}
             <div className="flex justify-end pr-[4vw]">
-              <Searchbar />
             </div>
           </div>
           {/* Body */}

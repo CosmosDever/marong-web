@@ -3,7 +3,21 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import FilterButton from "./Filter";
 
+// // SEARCH
+export async function Search(cases: any[], query: string) {
+  if (!cases) return [];
+  return cases.filter(
+    (item) =>
+      item.caseId.toString().toLowerCase().includes(query.toLowerCase()) ||
+      item.category.toLowerCase().includes(query.toLowerCase()) ||
+      item.dateOpened.toLowerCase().includes(query.toLowerCase()) ||
+      item.status.toLowerCase().includes(query.toLowerCase())
+  );
+}
+
+// SHOW CASE
 interface ApiResponse {
   message: {
     token: string[];
@@ -34,43 +48,60 @@ const CaseBox: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [searchCases, setSearchCases] = useState<CaseData[] | null>(null);
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (cases) {
+      Search(cases, query).then((results) => {
+        setSearchCases(results);
+      });
+    }
+  }, [query, cases]);
 
   useEffect(() => {
     const loginAndFetchToken = async () => {
       try {
-        const response = await axios.post<ApiResponse>(`${API_BASE_URL}/auth/login`, {
-          gmail: "msaidmin@gmail.com",
-          password: "hashed_password_2",
-        });
-  
+        const response = await axios.post<ApiResponse>(
+          `${API_BASE_URL}/auth/login`,
+          {
+            gmail: "msaidmin@gmail.com",
+            password: "hashed_password_2",
+          }
+        );
+
         const authToken = response.data.message.token[0];
         localStorage.setItem("token", authToken);
-        setToken(authToken); 
+        setToken(authToken);
       } catch (error) {
         console.error("Login failed:", error);
         setError("Login failed. Please check credentials and try again.");
       }
     };
-  
-    loginAndFetchToken(); 
-  }, []); 
-  
+
+    loginAndFetchToken();
+  }, []);
+
   useEffect(() => {
     const fetchCases = async () => {
-      if (!token) return; 
+      if (!token) return;
       try {
-        const response = await axios.get<{ data: CaseData[] }>(`${API_BASE_URL}/case/all`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-  
+        const response = await axios.get<{ data: CaseData[] }>(
+          `${API_BASE_URL}/case/all`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
         setCases(response.data.data);
+        // setSearchCases(response.data.data);
       } catch (err) {
         setError("Failed to fetch cases. Ensure token is valid.");
       } finally {
         setLoading(false);
       }
     };
-  
+
     fetchCases();
   }, [token]);
 
@@ -81,7 +112,8 @@ const CaseBox: React.FC = () => {
     <>
       <div className="h-full overflow-y-auto mt-[2vh] pb-[4vh]">
         <div className="w-full flex flex-col justify-center items-center ">
-          {cases?.map((item) => (
+          {/* {cases?.map((item) => ( */}
+          {searchCases?.map((item) => (
             <Link
               key={item.caseId}
               href={`/case/${item.caseId}`}
@@ -114,6 +146,28 @@ const CaseBox: React.FC = () => {
             </Link>
           ))}
         </div>
+      </div>
+      <div className="absolute top-[10vh] right-[5vw] flex ">
+        {/* Search input */}
+        <div className="h-[5vh] flex">
+          <img
+            src="https://cdn.pixabay.com/photo/2017/01/13/01/22/magnifying-glass-1976105_1280.png"
+            alt="search icon"
+            className="h-[1.5vw] w-[1.5vw] mt-[1vh] mr-[.5vw]"
+          />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            // onKeyDown={handleKeyDown}
+            className="w-[30vw] h-full pl-[1vw] border-blue-600 border-4 rounded-s-lg
+           active:border-blue-900 active:outline-none focus:border-blue-900 focus:outline-none"
+            type="text"
+            placeholder="Search..."
+          />
+        </div>
+        {/* filter btn */}
+        <FilterButton/>
+        
       </div>
     </>
   );

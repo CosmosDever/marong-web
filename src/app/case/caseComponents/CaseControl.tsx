@@ -201,7 +201,6 @@ const CaseControl: React.FC = () => {
                 }
               );
               console.log("Cancel updated:", response.data);
-
             } catch (err) {
               console.error("Error occurred:", err);
             }
