@@ -158,6 +158,7 @@ const CaseControl: React.FC = () => {
         );
 
         const authToken = response.data.message.token[0];
+
         setToken(authToken);
       } catch (error) {
         console.error("Login failed:", error);
@@ -168,34 +169,35 @@ const CaseControl: React.FC = () => {
   }, []);
 
   const handleSubmit = async (type: "cancel" | "inProgress" | "done") => {
-    // CANCEL
+    // CANCEL-----------------------------------------------------------
     if (type === "cancel") {
       try {
         const response = await updateCancel(detailCancel, id);
         if (response && detailCancel) {
-          // POST
-          const post_cancel = async () => {
-            if (!token) return;
-            try {
-              const response = await axios.post(
-                `${API_BASE_URL}/case/${id}/changeStatus/cancelCase`,
-                {
-                  detail: detailCancel,
-                },
-                {
-                  headers: { Authorization: `${token}` },
-                }
-              );
+          // Create a FormData object
+          const formData = new FormData();
+          formData.append("detail", "CANCEL");
 
-              console.log("Cancel updated:", response.data);
-            } catch (err) {
-              console.error("Error occurred:", err);
+          const fileInput = document.querySelector(
+            "#fileInput"
+          ) as HTMLInputElement;
+          if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            formData.append("file", fileInput.files[0]);
+          }
+
+          // Send POST request using axios
+          await axios.post(
+            `${API_BASE_URL}/case/${id}/changeStatus/cancelCase`,
+            formData,
+            {
+              headers: {
+                Authorization: `${token}`,
+                "Content-Type": "multipart/form-data",
+              },
             }
-          };
+          );
 
-          post_cancel();
-          //POST---
-
+          console.log("Cancel updated successfully");
           setIsCancelPopupVisible(false);
         } else {
           console.error("Failed to update case status.");
@@ -203,7 +205,8 @@ const CaseControl: React.FC = () => {
       } catch (error) {
         console.error("Error occurred:", error);
       }
-      // IN PROGRESS
+
+      // IN PROGRESS----------------------------------------------------
     } else if (type === "inProgress") {
       try {
         const response = await postInProgress(detailInProgress, id);
@@ -237,7 +240,7 @@ const CaseControl: React.FC = () => {
       } catch (error) {
         console.error("Error occurred:", error);
       }
-      // DONE
+      // DONE-----------------------------------------------------------
     } else if (type === "done") {
       try {
         const response = await postDone(detailDone, imageDone, id);
