@@ -30,6 +30,10 @@ export default function AdminPage() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
   const router = useRouter();
+  const [adminData, setadminData] = useState({
+    roles: "",
+    id: ""
+  });
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -60,7 +64,7 @@ export default function AdminPage() {
             id: user.id,
             name: user.fullName,
             role: user.role.replace("ROLE_", ""),
-            picture: user.picture, // Ensure this points to the correct image URL or path
+            picture: user.picture,
           }));
           setUsers(formattedUsers);
         } else {
@@ -72,10 +76,53 @@ export default function AdminPage() {
         setLoading(false);
       }
     };
+    
 
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    const fetchadminData = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
   
+      try {
+        const response = await fetch(`http://localhost:8080/api/userdata/token/${token}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+  
+        if (!response.ok) {
+          console.error("Failed to fetch user data:", response.statusText);
+          return;
+        }
+  
+        const result = await response.json();
+  
+        if (result.statusCode === "200") {
+          const {roles, id } = result.data;
+        
+          const roleNameMatch = roles.match(/name=ROLE_(.+)\)/);
+          const roleName = roleNameMatch ? roleNameMatch[1] : "Unknown Role";
+        
+          setadminData({ roles: roleName, id });
+        } else {
+          console.error("Error in API response:", result.statusMessage);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+  
+    fetchadminData();
+  }, []);
+
 
   const handleDeleteClick = (id: number, name: string) => {
     setSelectedUserId(id);
@@ -135,13 +182,15 @@ export default function AdminPage() {
       <Sidebar />
       <div className="flex-1 flex flex-col h-full">
         <div className="bg-white p-6 shadow-md">
-          <div className="flex items-center justify-between mx-auto w-[90%]">
-            <div className="text-3xl font-bold">ADMIN MANAGEMENT</div>
+        <div className="flex items-center justify-between mx-auto w-[90%]">
+          <div className="text-3xl font-bold">ADMIN MANAGEMENT</div>
+          {adminData.roles === "master Admin" && (
             <Link href="/admin/add" className="text-blue-600 flex items-center">
               <Image src="/Addbtn.png" alt="Add Admin" width={30} height={30} className="mr-2" />
               <span className="translate-y-1">Add Admin</span>
             </Link>
-          </div>
+          )}
+        </div>
           <div className="w-[90%] mx-auto pt-4">
             <table className="w-full text-left border-collapse pt-10 translate-y-8">
               <thead>
