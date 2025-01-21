@@ -35,61 +35,44 @@ const CaseBox: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
-  const loginAndFetchToken = async () => {
-    try {
-      const response = await axios.post<ApiResponse>(
-        `${API_BASE_URL}/auth/login`,
-        {
+  useEffect(() => {
+    const loginAndFetchToken = async () => {
+      try {
+        const response = await axios.post<ApiResponse>(`${API_BASE_URL}/auth/login`, {
           gmail: "msaidmin@gmail.com",
           password: "hashed_password_2",
-        }
-      );
-
-      const authToken = response.data.message.token[0];
-      localStorage.setItem("token", authToken);
-      setToken(authToken);
-      return authToken;
-    } catch (error) {
-      console.error("Error during login:", error);
-      setError("Login failed. Please check credentials and try again.");
-      return null; 
-    }
-  };
-
-  const fetchCases = async (authToken: string) => {
-    try {
-      const response = await axios.get<{ data: CaseData[] }>(
-        `${API_BASE_URL}/case/all`,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
-
-      setCases(response.data.data);
-    } catch (err) {
-      setError("Failed to fetch cases. Ensure token is valid.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+        });
+  
+        const authToken = response.data.message.token[0];
+        localStorage.setItem("token", authToken);
+        setToken(authToken); 
+      } catch (error) {
+        console.error("Login failed:", error);
+        setError("Login failed. Please check credentials and try again.");
+      }
+    };
+  
+    loginAndFetchToken(); 
+  }, []); 
+  
   useEffect(() => {
-
-    const init = async () => {
-
-      const authToken = await loginAndFetchToken();
-
-      if (authToken) {
-        fetchCases(authToken);
-      } else {
+    const fetchCases = async () => {
+      if (!token) return; 
+      try {
+        const response = await axios.get<{ data: CaseData[] }>(`${API_BASE_URL}/case/all`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+  
+        setCases(response.data.data);
+      } catch (err) {
+        setError("Failed to fetch cases. Ensure token is valid.");
+      } finally {
         setLoading(false);
       }
     };
-
-    init();
-  }, []);
+  
+    fetchCases();
+  }, [token]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;

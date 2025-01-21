@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CancelPopup from "./CaseCancelPopup";
 import InProgressPopup from "./CaseInProgressPopup";
 import { NextResponse } from "next/server";
 import DonePopup from "./CaseDonePopup";
+import axios from "axios";
+import { useParams } from "next/navigation";
 
 export async function updateCancel(statusCancel: string, detailCancel: string) {
   console.log("Request body received:", { detailCancel });
@@ -12,10 +14,10 @@ export async function updateCancel(statusCancel: string, detailCancel: string) {
   if (!detailCancel || !statusCancel) {
     const response = {
       status: "error",
-      message: "'detail' is required when cancelling the case.",
+      message: "'Detail' is required when cancelling the case.",
     };
 
-    console.log("Response:", response);
+    alert("'Detail' is required when cancelling the case.");
 
     return NextResponse.json(response);
   }
@@ -28,7 +30,7 @@ export async function updateCancel(statusCancel: string, detailCancel: string) {
         case_id: "101",
         status: statusCancel,
         detail: detailCancel,
-        date_updated: "2024-12-22T10:30:00Z",
+        date_updated: new Date().toISOString(),
       },
     };
 
@@ -44,16 +46,16 @@ export async function updateCancel(statusCancel: string, detailCancel: string) {
   );
 }
 
-export async function postInProgress(detail: string) {
+export async function postInProgress(detail: string, id: string) {
   // console.log("Request body received:", { detail });
 
   if (!detail) {
     const response = {
       status: "error",
-      message: "'detail' are required when changing status to 'in progress'.",
+      message: "'Detail' are required when changing status to 'in progress'.",
     };
 
-    console.log("Response:", response);
+    alert("'Detail' are required when changing status to 'in progress'");
 
     return NextResponse.json(response);
   }
@@ -63,14 +65,12 @@ export async function postInProgress(detail: string) {
       status: "success",
       message: "Case status updated successfully.",
       data: {
-        case_id: "101",
+        case_id: id,
         status: "In Progress",
         detail: detail,
-        date_updated: "2024-12-22T10:30:00Z",
+        date_updated: new Date().toISOString(),
       },
     };
-
-    console.log("Response:", response);
 
     return NextResponse.json(response);
   }
@@ -90,7 +90,10 @@ export async function postDone(detailDone: string, imageDone: string | null) {
       message:
         "Both 'detail' and 'picture' are required when changing status to 'Done'.",
     };
-    console.log("Response:", response);
+
+    alert(
+      "Both 'detail' and 'picture' are required when changing status to 'Done'."
+    );
 
     return NextResponse.json(response);
   }
@@ -104,7 +107,7 @@ export async function postDone(detailDone: string, imageDone: string | null) {
         status: "Done",
         detail: detailDone,
         picture: imageDone,
-        date_updated: "2024-12-22T10:30:00Z",
+        date_updated: new Date().toISOString(),
       },
     };
 
@@ -120,7 +123,17 @@ export async function postDone(detailDone: string, imageDone: string | null) {
   );
 }
 
-const CaseControl = () => {
+interface ApiResponse {
+  message: {
+    token: string[];
+  };
+}
+
+const API_BASE_URL = "http://localhost:8080/api";
+
+const CaseControl: React.FC = () => {
+  const params = useParams();
+  const id = String(params.id);
   const [isInProgressBtnVisible, setIsInProgressBtnVisible] = useState(true);
   const [isDoneBtnVisible, setIsDoneBtnVisible] = useState(false);
   const [isCancelPopupVisible, setIsCancelPopupVisible] = useState(false);
@@ -131,18 +144,33 @@ const CaseControl = () => {
   const [detailDone, setDetailDone] = useState(String);
   const [detailCancel, setDetailCancel] = useState(String);
   const [imageDone, setImageDone] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
-  const togglePopup = (type: "cancel" | "inProgress" | "done") => {
-    if (type === "cancel") {
-      setIsCancelPopupVisible((prev) => !prev);
-    } else if (type === "inProgress") {
-      setIsInProgressPopupVisible((prev) => !prev);
-    } else if (type === "done") {
-      setIsDonePopupVisible((prev) => !prev);
-    }
-  };
+  // TOKEN
+  useEffect(() => {
+    const loginAndFetchToken = async () => {
+      try {
+        const response = await axios.post<ApiResponse>(
+          `${API_BASE_URL}/auth/login`,
+          {
+            gmail: "msaidmin@gmail.com",
+            password: "hashed_password_2",
+          }
+        );
+
+        const authToken = response.data.message.token[0];
+        localStorage.setItem("token", authToken);
+        setToken(authToken);
+      } catch (error) {
+        console.error("Login failed:", error);
+      }
+    };
+
+    loginAndFetchToken();
+  }, []);
 
   const handleSubmit = async (type: "cancel" | "inProgress" | "done") => {
+    // CANCEL
     if (type === "cancel") {
       console.log(`Cancel Pressed`);
       try {
@@ -155,11 +183,31 @@ const CaseControl = () => {
       } catch (error) {
         console.error("Error occurred:", error);
       }
+      // IN PROGRESS
     } else if (type === "inProgress") {
       try {
-        const response = await postInProgress(detailInProgress);
+        const response = await postInProgress(detailInProgress, id);
         if (response && detailInProgress) {
-          console.log("InProgress pressed : ",detailInProgress);
+          // POST
+          const post_inprogress = async () => {
+            if (!token) return;
+            try {
+              const response = await axios.post(
+                `${API_BASE_URL}/case/${id}/changeStatus/inprogress`,
+                { detailInProgress },
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                }
+              );
+
+              console.log("Case status updated:", response.data);
+            } catch (err) {
+              console.error("Failed to fetch cases. Ensure token is valid.");
+            }
+          };
+
+          post_inprogress();
+
           setIsInProgressPopupVisible(false);
           setIsInProgressBtnVisible(false);
           setIsDoneBtnVisible(true);
@@ -169,12 +217,13 @@ const CaseControl = () => {
       } catch (error) {
         console.error("Error occurred:", error);
       }
+      // DONE
     } else if (type === "done") {
       try {
         const response = await postDone(detailDone, imageDone);
 
         if (response && detailDone) {
-          console.log("Done pressed : ",detailDone);
+          console.log("Done pressed : ", detailDone);
           setIsDonePopupVisible(false);
         } else {
           console.error("Failed to update case status.");
@@ -182,6 +231,16 @@ const CaseControl = () => {
       } catch (error) {
         console.error("Error occurred:", error);
       }
+    }
+  };
+
+  const togglePopup = (type: "cancel" | "inProgress" | "done") => {
+    if (type === "cancel") {
+      setIsCancelPopupVisible((prev) => !prev);
+    } else if (type === "inProgress") {
+      setIsInProgressPopupVisible((prev) => !prev);
+    } else if (type === "done") {
+      setIsDonePopupVisible((prev) => !prev);
     }
   };
 
