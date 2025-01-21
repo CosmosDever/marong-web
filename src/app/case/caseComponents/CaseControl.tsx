@@ -8,10 +8,8 @@ import DonePopup from "./CaseDonePopup";
 import axios from "axios";
 import { useParams } from "next/navigation";
 
-export async function updateCancel(statusCancel: string, detailCancel: string) {
-  console.log("Request body received:", { detailCancel });
-
-  if (!detailCancel || !statusCancel) {
+export async function updateCancel(detailCancel: string, id: string) {
+  if (!detailCancel) {
     const response = {
       status: "error",
       message: "'Detail' is required when cancelling the case.",
@@ -22,19 +20,18 @@ export async function updateCancel(statusCancel: string, detailCancel: string) {
     return NextResponse.json(response);
   }
 
-  if (detailCancel && statusCancel) {
+  if (detailCancel) {
     const response = {
       status: "success",
       message: "Case status updated to 'Cancelled' successfully.",
       data: {
-        case_id: "101",
-        status: statusCancel,
+        case_id: id,
+        status: "Cancelled",
         detail: detailCancel,
         date_updated: new Date().toISOString(),
       },
     };
-
-    console.log("Response:", response);
+    // console.log("Cancel Response:", response);
 
     return NextResponse.json(response);
   }
@@ -82,7 +79,11 @@ export async function postInProgress(detail: string, id: string) {
   );
 }
 
-export async function postDone(detailDone: string, imageDone: string | null) {
+export async function postDone(
+  detailDone: string,
+  imageDone: string | null,
+  id: string
+) {
   // console.log("Request body received:", { detaiDone });
   if (!detailDone || !imageDone) {
     const response = {
@@ -103,15 +104,13 @@ export async function postDone(detailDone: string, imageDone: string | null) {
       status: "success",
       message: "Case status updated to 'Done' successfully.",
       data: {
-        case_id: "101",
+        case_id: id,
         status: "Done",
         detail: detailDone,
         picture: imageDone,
         date_updated: new Date().toISOString(),
       },
     };
-
-    console.log("Response:", response);
 
     return NextResponse.json(response);
   }
@@ -159,7 +158,6 @@ const CaseControl: React.FC = () => {
         );
 
         const authToken = response.data.message.token[0];
-        localStorage.setItem("token", authToken);
         setToken(authToken);
       } catch (error) {
         console.error("Login failed:", error);
@@ -172,10 +170,32 @@ const CaseControl: React.FC = () => {
   const handleSubmit = async (type: "cancel" | "inProgress" | "done") => {
     // CANCEL
     if (type === "cancel") {
-      console.log(`Cancel Pressed`);
       try {
-        const response = await updateCancel("Cancelled", detailCancel);
-        if (detailCancel) {
+        const response = await updateCancel(detailCancel, id);
+        if (response && detailCancel) {
+          // POST
+          const post_cancel = async () => {
+            if (!token) return;
+            try {
+              const response = await axios.post(
+                `${API_BASE_URL}/case/${id}/changeStatus/cancelCase`,
+                {
+                  detail: detailCancel,
+                },
+                {
+                  headers: { Authorization: `${token}` },
+                }
+              );
+
+              console.log("Cancel updated:", response.data);
+            } catch (err) {
+              console.error("Error occurred:", err);
+            }
+          };
+
+          post_cancel();
+          //POST---
+
           setIsCancelPopupVisible(false);
         } else {
           console.error("Failed to update case status.");
@@ -199,14 +219,14 @@ const CaseControl: React.FC = () => {
                   headers: { Authorization: `Bearer ${token}` },
                 }
               );
-
-              console.log("Case status updated:", response.data);
+              console.log("In progress updated:", response.data);
             } catch (err) {
-              console.error("Failed to fetch cases. Ensure token is valid.");
+              console.error("Error occurred:", err);
             }
           };
 
           post_inprogress();
+          //POST---
 
           setIsInProgressPopupVisible(false);
           setIsInProgressBtnVisible(false);
@@ -220,7 +240,7 @@ const CaseControl: React.FC = () => {
       // DONE
     } else if (type === "done") {
       try {
-        const response = await postDone(detailDone, imageDone);
+        const response = await postDone(detailDone, imageDone, id);
 
         if (response && detailDone) {
           console.log("Done pressed : ", detailDone);
