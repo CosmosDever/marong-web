@@ -142,7 +142,7 @@ const CaseControl: React.FC = () => {
   const [detailInProgress, setDetailInProgress] = useState(String);
   const [detailDone, setDetailDone] = useState(String);
   const [detailCancel, setDetailCancel] = useState(String);
-  const [imageDone, setImageDone] = useState<string | null>(null);
+  const [imageDone, setImageDone] = useState(String);
   const [token, setToken] = useState<string | null>(null);
 
   // TOKEN
@@ -159,45 +159,57 @@ const CaseControl: React.FC = () => {
 
         const authToken = response.data.message.token[0];
 
+        // Store the token in localStorage
+        localStorage.setItem("token", authToken);
+
+        // Set the token in state
         setToken(authToken);
       } catch (error) {
         console.error("Login failed:", error);
       }
     };
 
-    loginAndFetchToken();
+    // Check if the token exists in localStorage before fetching
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      setToken(storedToken);
+    } else {
+      loginAndFetchToken();
+    }
   }, []);
 
   const handleSubmit = async (type: "cancel" | "inProgress" | "done") => {
-    // CANCEL-----------------------------------------------------------
     if (type === "cancel") {
+      // CANCEL
       try {
         const response = await updateCancel(detailCancel, id);
         if (response && detailCancel) {
-          // Create a FormData object
-          const formData = new FormData();
-          formData.append("detail", "CANCEL");
+          const post_cancel = async () => {
+            if (!token) return;
+            try {
+              const formData = new FormData();
+              formData.append("detail", detailCancel); // Append detail
 
-          const fileInput = document.querySelector(
-            "#fileInput"
-          ) as HTMLInputElement;
-          if (fileInput && fileInput.files && fileInput.files.length > 0) {
-            formData.append("file", fileInput.files[0]);
-          }
+              const response = await axios.post(
+                `${API_BASE_URL}/case/${id}/changeStatus/cancelCase`,
+                formData,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data",
+                  },
+                }
+              );
+              console.log("Cancel updated:", response.data);
 
-          // Send POST request using axios
-          await axios.post(
-            `${API_BASE_URL}/case/${id}/changeStatus/cancelCase`,
-            formData,
-            {
-              headers: {
-                Authorization: `${token}`,
-                "Content-Type": "multipart/form-data",
-              },
+            } catch (err) {
+              console.error("Error occurred:", err);
             }
-          );
+          };
 
-          console.log("Cancel updated successfully");
+          post_cancel();
+
+          // console.log("Cancel updated successfully");
           setIsCancelPopupVisible(false);
         } else {
           console.error("Failed to update case status.");
@@ -205,9 +217,8 @@ const CaseControl: React.FC = () => {
       } catch (error) {
         console.error("Error occurred:", error);
       }
-
-      // IN PROGRESS----------------------------------------------------
     } else if (type === "inProgress") {
+      // IN PROGRESS
       try {
         const response = await postInProgress(detailInProgress, id);
         if (response && detailInProgress) {
@@ -217,7 +228,7 @@ const CaseControl: React.FC = () => {
             try {
               const response = await axios.post(
                 `${API_BASE_URL}/case/${id}/changeStatus/inprogress`,
-                { detailInProgress },
+                { detail: detailInProgress },
                 {
                   headers: { Authorization: `Bearer ${token}` },
                 }
@@ -240,13 +251,46 @@ const CaseControl: React.FC = () => {
       } catch (error) {
         console.error("Error occurred:", error);
       }
-      // DONE-----------------------------------------------------------
     } else if (type === "done") {
+      // DONE
       try {
         const response = await postDone(detailDone, imageDone, id);
 
         if (response && detailDone) {
-          console.log("Done pressed : ", detailDone);
+          const post_done = async () => {
+            if (!token) return;
+            try {
+              // const response = await axios.post(
+              //   `${API_BASE_URL}/case/${id}/changeStatus/done`,
+              //   { detail: detailInProgress, picture: imageDone },
+              //   {
+              //     headers: { Authorization: `Bearer ${token}` },
+              //   }
+              // );
+
+              const formData = new FormData();
+              formData.append("detail", detailDone); // Append detail
+              formData.append("picture", imageDone); // Append picture (assuming imageDone is a File or Blob)
+
+              // Send POST request using axios
+              const response = await axios.post(
+                `${API_BASE_URL}/case/${id}/changeStatus/done`,
+                formData,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data",
+                  },
+                }
+              );
+              console.log("Done updated:", response.data);
+            } catch (err) {
+              console.error("Error occurred:", err);
+            }
+          };
+
+          post_done();
+
           setIsDonePopupVisible(false);
         } else {
           console.error("Failed to update case status.");

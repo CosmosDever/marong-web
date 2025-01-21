@@ -1,3 +1,4 @@
+import { uploadImage } from "@/app/component/imageUpload";
 import React from "react";
 interface PopupProps {
   message: string;
@@ -5,8 +6,8 @@ interface PopupProps {
   onCancel: () => void;
   detailDone: string;
   setDetailDone: React.Dispatch<React.SetStateAction<string>>;
-  imageDone: string | null;
-  setImageDone: React.Dispatch<React.SetStateAction<string | null>>;
+  imageDone: string;
+  setImageDone: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const DonePopup: React.FC<PopupProps> = ({
@@ -18,20 +19,21 @@ const DonePopup: React.FC<PopupProps> = ({
   imageDone,
   setImageDone,
 }) => {
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageDone(reader.result as string); 
-      };
-      reader.readAsDataURL(file); 
+      try {
+        const url = await uploadImage(file); 
+        setImageDone(url); 
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      }
     }
   };
 
   return (
     <div className="max-h fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg text-center w-80 shadow-lg">
+      <div className="overflow-auto h-[80vh] bg-white p-6 rounded-lg text-center w-80 shadow-lg">
         <p>{message}</p>
         <form>
           <textarea

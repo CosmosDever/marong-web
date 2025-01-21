@@ -7,7 +7,7 @@ export async function uploadImage(file: File): Promise<string> {
         .from("Marong")
         .upload(fileName, file);
 
-    if (error) {
+    if (error) {      
         throw error;
     }
 
