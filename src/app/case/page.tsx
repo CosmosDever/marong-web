@@ -1,6 +1,5 @@
 import Sidebar from "../component/sidebar";
 import CaseBox from "./caseComponents/CaseBox";
-import Searchbar from "./caseComponents/Searchbar";
 
 const casePage = () => {
   return (
@@ -12,28 +11,23 @@ const casePage = () => {
           {/* Head */}
           <div className="h-[20vh] w-full">
             <h1 className="pt-[4vh] pl-[8vw] text-3xl font-bold">CASE</h1>
+            {/* Empty Area */}
             <div className="flex justify-end pr-[4vw]">
-              <Searchbar />
             </div>
           </div>
           {/* Body */}
           <div className="h-[80vh] w-full">
             {/* label */}
 
-            <div className="pl-[9vw] pr-[15vw] grid grid-cols-6 gap-5 h-[3vh] w-full text-sm font-bold">
+            <div className="ml-[6vw] pr-[15vw] grid grid-cols-6 gap-5 justify-items-center h-[3vh] w-full text-sm font-bold">
               <p className="">Picture</p>
-              <p className="ml-[1vw] pl-[2vw]">ID</p>
-              <p className="pl-[0.7vw]">Type</p>
-              <p className="pl-[2.5vw] overflow-visible whitespace-nowrap">
+              <p className="pl-[1vw]">ID</p>
+              <p className="justify-self-start pl-[1vw]">Type</p>
+              <p className=" overflow-visible whitespace-nowrap">
                 Damage value
               </p>
-              <p className="pl-[4vw]">Date</p>
-              <p className="pl-[8vw]">Status</p>
-              <p className="pl-[2vw]">ID</p>
-              <p className="">Type</p>
-              <p className="">Damage value</p>
-              <p className="pl-[1vw]">Date</p>
-              <p className="pl-[4vw]">Status</p>
+              <p className="">Date</p>
+              <p className="pl-[1vw]">Status</p>
             </div>
             {/* box */}
             <div

@@ -1,57 +1,56 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
-import 'mapbox-gl/dist/mapbox-gl.css'; 
+import "mapbox-gl/dist/mapbox-gl.css";
 
-mapboxgl.accessToken =
-  "pk.eyJ1IjoicHJhbTQ3IiwiYSI6ImNtNXRzMzdnZDEwZjkyaXEwbzU3Y2J2cnQifQ.3e4ZNgqhVduJkxgtzMCkUw";
+mapboxgl.accessToken = "pk.eyJ1IjoicHJhbTQ3IiwiYSI6ImNtNXRzMzdnZDEwZjkyaXEwbzU3Y2J2cnQifQ.3e4ZNgqhVduJkxgtzMCkUw";
 
 interface MapViewProps {
   coordinates: [number, number];
-  description: string;
 }
 
-const MapBox: React.FC<MapViewProps> = ({ coordinates, description }) => {
+const MapBox: React.FC<MapViewProps> = ({ coordinates}) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
-
-  console.log(coordinates)
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current) return;
+    if (!mapContainerRef.current || isMapLoaded) return;
 
-    mapRef.current = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: "mapbox://styles/mapbox/streets-v11",
-      center: coordinates,
-      zoom: 15,
-    });
-    markerRef.current = new mapboxgl.Marker()
-      .setLngLat(coordinates)
-      .setPopup(new mapboxgl.Popup().setText(description)) 
-      .addTo(mapRef.current);
+    const timeout = setTimeout(() => {
+      mapRef.current = new mapboxgl.Map({
+        container: mapContainerRef.current!,
+        style: "mapbox://styles/mapbox/streets-v11",
+        center: coordinates,
+        zoom: 15,
+      });
+
+      mapRef.current.on("load", () => setIsMapLoaded(true));
+
+      const popup = new mapboxgl.Popup();
+      markerRef.current = new mapboxgl.Marker()
+        .setLngLat(coordinates)
+        .setPopup(popup)
+        .addTo(mapRef.current!);
+    }, 500); 
 
     return () => {
-      if (markerRef.current) {
-        markerRef.current.remove();
-      }
-      if (mapRef.current) {
-        mapRef.current.remove();
-      }
+      clearTimeout(timeout);
+      markerRef.current?.remove();
+      mapRef.current?.remove();
     };
-  }, []);
+  }, [coordinates]); 
 
   useEffect(() => {
-    if (markerRef.current && coordinates) {
+    if (isMapLoaded && markerRef.current) {
       markerRef.current.setLngLat(coordinates);
+      markerRef.current.getPopup();
     }
-  }, [coordinates]);
+  }, [coordinates, isMapLoaded]); 
 
-  return (
-    <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
-  );
+  return <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />;
 };
 
 export default MapBox;

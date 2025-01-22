@@ -2,7 +2,7 @@ import React from "react";
 
 interface PopupProps {
   message: string;
-  onConfirm: () => void;
+  onSubmit: () => void;
   onCancel: () => void;
   detailCancel: string
   setDetailCancel:React.Dispatch<React.SetStateAction<string>>;
@@ -10,7 +10,7 @@ interface PopupProps {
 
 const CancelPopup: React.FC<PopupProps> = ({
   message,
-  onConfirm,
+  onSubmit,
   onCancel,
   detailCancel,
   setDetailCancel,
@@ -29,10 +29,10 @@ const CancelPopup: React.FC<PopupProps> = ({
         </form>
         <div className="flex justify-around mt-5">
           <button
-            onClick={onConfirm}
+            onClick={onSubmit}
             className="px-6 py-2 bg-red-500 text-white rounded-lg hover:opacity-80"
           >
-            Confirm
+            Submit
           </button>
           <button
             onClick={onCancel}

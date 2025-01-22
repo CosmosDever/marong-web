@@ -1,7 +1,7 @@
 import React from "react";
 interface PopupProps {
   message: string;
-  onConfirm: () => void;
+  onSubmit: () => void;
   onCancel: () => void;
   detail: string;
   setDetail: React.Dispatch<React.SetStateAction<string>>;
@@ -9,7 +9,7 @@ interface PopupProps {
 
 const InProgressPopup: React.FC<PopupProps> = ({
   message,
-  onConfirm,
+  onSubmit,
   onCancel,
   detail,
   setDetail,
@@ -35,11 +35,11 @@ const InProgressPopup: React.FC<PopupProps> = ({
             Cancel
           </button>
           <button
-            onClick={onConfirm}
+            onClick={onSubmit}
             className="px-6 py-2 bg-green-500 text-white rounded-lg hover:opacity-80"
             type="submit"
           >
-            Confirm
+            Submit
           </button>
         </div>
       </div>

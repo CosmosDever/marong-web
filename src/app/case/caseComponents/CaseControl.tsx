@@ -1,38 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CancelPopup from "./CaseCancelPopup";
-import InProgressPopup from "./CaseInProgressPopup";
 import { NextResponse } from "next/server";
+import axios from "axios";
+import { useParams } from "next/navigation";
+import InProgressPopup from "./CaseInProgressPopup";
 import DonePopup from "./CaseDonePopup";
 
-export async function updateCancel(statusCancel: string, detailCancel: string) {
-  console.log("Request body received:", { detailCancel });
-
-  if (!detailCancel || !statusCancel) {
+export async function updateCancel(detailCancel: string, id: string) {
+  if (!detailCancel) {
     const response = {
       status: "error",
-      message: "'detail' is required when cancelling the case.",
+      message: "'Detail' is required when cancelling the case.",
     };
 
-    console.log("Response:", response);
+    alert("'Detail' is required when cancelling the case.");
 
     return NextResponse.json(response);
   }
 
-  if (detailCancel && statusCancel) {
+  if (detailCancel) {
     const response = {
       status: "success",
       message: "Case status updated to 'Cancelled' successfully.",
       data: {
-        case_id: "101",
-        status: statusCancel,
+        case_id: id,
+        status: "Cancelled",
         detail: detailCancel,
-        date_updated: "2024-12-22T10:30:00Z",
+        date_updated: new Date().toISOString(),
       },
     };
-
-    console.log("Response:", response);
+    // console.log("Cancel Response:", response);
 
     return NextResponse.json(response);
   }
@@ -44,16 +43,16 @@ export async function updateCancel(statusCancel: string, detailCancel: string) {
   );
 }
 
-export async function postInProgress(detail: string) {
+export async function postInProgress(detail: string, id: string) {
   // console.log("Request body received:", { detail });
 
   if (!detail) {
     const response = {
       status: "error",
-      message: "'detail' are required when changing status to 'in progress'.",
+      message: "'Detail' are required when changing status to 'in progress'.",
     };
 
-    console.log("Response:", response);
+    alert("'Detail' are required when changing status to 'in progress'");
 
     return NextResponse.json(response);
   }
@@ -63,14 +62,12 @@ export async function postInProgress(detail: string) {
       status: "success",
       message: "Case status updated successfully.",
       data: {
-        case_id: "101",
+        case_id: id,
         status: "In Progress",
         detail: detail,
-        date_updated: "2024-12-22T10:30:00Z",
+        date_updated: new Date().toISOString(),
       },
     };
-
-    console.log("Response:", response);
 
     return NextResponse.json(response);
   }
@@ -82,33 +79,38 @@ export async function postInProgress(detail: string) {
   );
 }
 
-export async function postDone(detail2: string, imageDone: string | null) {
-  // console.log("Request body received:", { detail2 });
-  if (!detail2 || !imageDone) {
+export async function postDone(
+  detailDone: string,
+  imageDone: string | null,
+  id: string
+) {
+  // console.log("Request body received:", { detaiDone });
+  if (!detailDone || !imageDone) {
     const response = {
       status: "error",
       message:
         "Both 'detail' and 'picture' are required when changing status to 'Done'.",
     };
-    console.log("Response:", response);
+
+    alert(
+      "Both 'detail' and 'picture' are required when changing status to 'Done'."
+    );
 
     return NextResponse.json(response);
   }
 
-  if (detail2 && imageDone) {
+  if (detailDone && imageDone) {
     const response = {
       status: "success",
       message: "Case status updated to 'Done' successfully.",
       data: {
-        case_id: "101",
+        case_id: id,
         status: "Done",
-        detail: detail2,
+        detail: detailDone,
         picture: imageDone,
-        date_updated: "2024-12-22T10:30:00Z",
+        date_updated: new Date().toISOString(),
       },
     };
-
-    console.log("Response:", response);
 
     return NextResponse.json(response);
   }
@@ -120,38 +122,93 @@ export async function postDone(detail2: string, imageDone: string | null) {
   );
 }
 
-const CaseControl = () => {
+interface ApiResponse {
+  message: {
+    token: string[];
+  };
+}
+
+const API_BASE_URL = "http://localhost:8080/api";
+
+const CaseControl: React.FC = () => {
+  const params = useParams();
+  const id = String(params.id);
   const [isInProgressBtnVisible, setIsInProgressBtnVisible] = useState(true);
   const [isDoneBtnVisible, setIsDoneBtnVisible] = useState(false);
   const [isCancelPopupVisible, setIsCancelPopupVisible] = useState(false);
   const [isInProgressPopupVisible, setIsInProgressPopupVisible] =
     useState(false);
   const [isDonePopupVisible, setIsDonePopupVisible] = useState(false);
-  const [detail, setDetail] = useState(
-    "กำลังส่งเรื่องให้หน่วยงานที่เกี่ยวข้องเพื่อทำการแก้ไขครับ"
-  );
-  const [detail2, setDetail2] = useState("ได้รับการแก้ไขโดยการซ่อมเรียบร้อย");
-  const [detailCancel, setDetailCancel] = useState(
-    "ตรวจสอบแล้วไม่ตรงกับที่รายงาน"
-  );
-  const [imageDone, setImageDone] = useState<string | null>(null);
+  const [detailInProgress, setDetailInProgress] = useState(String);
+  const [detailDone, setDetailDone] = useState(String);
+  const [detailCancel, setDetailCancel] = useState(String);
+  const [imageDone, setImageDone] = useState(String);
+  const [token, setToken] = useState<string | null>(null);
 
-  const togglePopup = (type: "cancel" | "inProgress" | "done") => {
-    if (type === "cancel") {
-      setIsCancelPopupVisible((prev) => !prev);
-    } else if (type === "inProgress") {
-      setIsInProgressPopupVisible((prev) => !prev);
-    } else if (type === "done") {
-      setIsDonePopupVisible((prev) => !prev);
-    }
-  };
-
-  const handleConfirm = async (type: "cancel" | "inProgress" | "done") => {
-    if (type === "cancel") {
-      // console.log(`Cancel Pressed`);
+  // TOKEN
+  useEffect(() => {
+    const loginAndFetchToken = async () => {
       try {
-        const response = await updateCancel("Cancelled", detailCancel);
-        if (detailCancel) {
+        const response = await axios.post<ApiResponse>(
+          `${API_BASE_URL}/auth/login`,
+          {
+            gmail: "msaidmin@gmail.com",
+            password: "hashed_password_2",
+          }
+        );
+
+        const authToken = response.data.message.token[0];
+
+        // Store the token in localStorage
+        localStorage.setItem("token", authToken);
+
+        // Set the token in state
+        setToken(authToken);
+      } catch (error) {
+        console.error("Login failed:", error);
+      }
+    };
+
+    // Check if the token exists in localStorage before fetching
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      setToken(storedToken);
+    } else {
+      loginAndFetchToken();
+    }
+  }, []);
+
+  const handleSubmit = async (type: "cancel" | "inProgress" | "done") => {
+    if (type === "cancel") {
+      // CANCEL
+      try {
+        const response = await updateCancel(detailCancel, id);
+        if (response && detailCancel) {
+          const post_cancel = async () => {
+            if (!token) return;
+            try {
+              const formData = new FormData();
+              formData.append("detail", detailCancel); // Append detail
+
+              const response = await axios.post(
+                `${API_BASE_URL}/case/${id}/changeStatus/cancelCase`,
+                formData,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data",
+                  },
+                }
+              );
+              console.log("Cancel updated:", response.data);
+            } catch (err) {
+              console.error("Error occurred:", err);
+            }
+          };
+
+          post_cancel();
+
+          // console.log("Cancel updated successfully");
           setIsCancelPopupVisible(false);
         } else {
           console.error("Failed to update case status.");
@@ -160,11 +217,30 @@ const CaseControl = () => {
         console.error("Error occurred:", error);
       }
     } else if (type === "inProgress") {
+      // IN PROGRESS
       try {
-        const response = await postInProgress(detail);
-        if (response && detail) {
-          // console.log("InProgress pressed");
-          // console.log(detail);
+        const response = await postInProgress(detailInProgress, id);
+        if (response && detailInProgress) {
+          // POST
+          const post_inprogress = async () => {
+            if (!token) return;
+            try {
+              const response = await axios.post(
+                `${API_BASE_URL}/case/${id}/changeStatus/inprogress`,
+                { detail: detailInProgress },
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                }
+              );
+              console.log("In progress updated:", response.data);
+            } catch (err) {
+              console.error("Error occurred:", err);
+            }
+          };
+
+          post_inprogress();
+          //POST---
+
           setIsInProgressPopupVisible(false);
           setIsInProgressBtnVisible(false);
           setIsDoneBtnVisible(true);
@@ -175,12 +251,45 @@ const CaseControl = () => {
         console.error("Error occurred:", error);
       }
     } else if (type === "done") {
+      // DONE
       try {
-        const response = await postDone(detail2, imageDone);
+        const response = await postDone(detailDone, imageDone, id);
 
-        if (response && detail2) {
-          // console.log("Done pressed");
-          // console.log(detail2);
+        if (response && detailDone) {
+          const post_done = async () => {
+            if (!token) return;
+            try {
+              // const response = await axios.post(
+              //   `${API_BASE_URL}/case/${id}/changeStatus/done`,
+              //   { detail: detailInProgress, picture: imageDone },
+              //   {
+              //     headers: { Authorization: `Bearer ${token}` },
+              //   }
+              // );
+
+              const formData = new FormData();
+              formData.append("detail", detailDone); // Append detail
+              formData.append("picture", imageDone); // Append picture (assuming imageDone is a File or Blob)
+
+              // Send POST request using axios
+              const response = await axios.post(
+                `${API_BASE_URL}/case/${id}/changeStatus/done`,
+                formData,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data",
+                  },
+                }
+              );
+              console.log("Done updated:", response.data);
+            } catch (err) {
+              console.error("Error occurred:", err);
+            }
+          };
+
+          post_done();
+
           setIsDonePopupVisible(false);
         } else {
           console.error("Failed to update case status.");
@@ -188,6 +297,16 @@ const CaseControl = () => {
       } catch (error) {
         console.error("Error occurred:", error);
       }
+    }
+  };
+
+  const togglePopup = (type: "cancel" | "inProgress" | "done") => {
+    if (type === "cancel") {
+      setIsCancelPopupVisible((prev) => !prev);
+    } else if (type === "inProgress") {
+      setIsInProgressPopupVisible((prev) => !prev);
+    } else if (type === "done") {
+      setIsDonePopupVisible((prev) => !prev);
     }
   };
 
@@ -227,7 +346,7 @@ const CaseControl = () => {
       {isCancelPopupVisible && (
         <CancelPopup
           message="Are you sure you want to cancel?"
-          onConfirm={() => handleConfirm("cancel")}
+          onSubmit={() => handleSubmit("cancel")}
           onCancel={handleCancel}
           detailCancel={detailCancel}
           setDetailCancel={setDetailCancel}
@@ -236,19 +355,19 @@ const CaseControl = () => {
       {isInProgressPopupVisible && (
         <InProgressPopup
           message="Are you sure you want to change status to In progress?"
-          onConfirm={() => handleConfirm("inProgress")}
+          onSubmit={() => handleSubmit("inProgress")}
           onCancel={handleCancel}
-          detail={detail}
-          setDetail={setDetail}
+          detail={detailInProgress}
+          setDetail={setDetailInProgress}
         />
       )}
       {isDonePopupVisible && (
         <DonePopup
           message="Are you sure you want to change status to Done?"
-          onConfirm={() => handleConfirm("done")}
+          onSubmit={() => handleSubmit("done")}
           onCancel={handleCancel}
-          detail2={detail2}
-          setDetail2={setDetail2}
+          detailDone={detailDone}
+          setDetailDone={setDetailDone}
           imageDone={imageDone}
           setImageDone={setImageDone}
         />
