@@ -15,7 +15,13 @@ export default function AdminProfile() {
       id: ""
     });
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    fullName: string;
+    password: string;
+    confirmPassword: string;
+    role: string;
+    picture: string | File;
+  }>({
     fullName: "",
     password: "",
     confirmPassword: "",
@@ -75,25 +81,17 @@ export default function AdminProfile() {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
     if (file && file.type.startsWith("image/")) {
       setImagePreview(URL.createObjectURL(file));
-
-      try {
-        setLoading(true);
-        const publicURL = await uploadImage(file);
-        setFormData((prev) => ({ ...prev, picture: publicURL }));
-      } catch (error) {
-        console.error(error);
-        setError("ไม่สามารถอัปโหลดรูปภาพได้ กรุณาลองอีกครั้ง");
-      } finally {
-        setLoading(false);
-      }
+      setFormData((prev) => ({ ...prev, picture: file }));
+      setError("");
     } else {
       setError("โปรดเลือกไฟล์รูปภาพที่ถูกต้อง");
     }
   };
+  
 
   const handleSave = async () => {
     const token = localStorage.getItem("token");
@@ -107,23 +105,29 @@ export default function AdminProfile() {
   
     if (formData.password !== formData.confirmPassword) {
       setError("Password and Confirm Password do not match.");
-      setLoading(false);
       return;
     }
   
     try {
-      const payload: Record<string, any> = {};
-      if (formData.fullName) payload.fullName = formData.fullName;
-      if (formData.password) payload.password = formData.password;
+      let imageUrl = "";
+      if (formData.picture instanceof File) {
+        try {
+          imageUrl = await uploadImage(formData.picture);
+        } catch (uploadError) {
+          setError("Failed to upload image. Please try again.");
+          setLoading(false);
+          return;
+        }
+      }
+  
+      const payload: Record<string, any> = {
+        fullName: formData.fullName,
+        password: formData.password,
+        picture: imageUrl || "",
+      };
   
       if (adminData.roles === "master Admin" && formData.role) {
         payload.role = formData.role;
-      }
-  
-      if (formData.picture) {
-        payload.picture = formData.picture;
-      } else if (imagePreview) {
-        payload.picture = imagePreview;
       }
   
       console.log("Payload:", payload);
@@ -141,11 +145,8 @@ export default function AdminProfile() {
         throw new Error("Failed to update admin profile.");
       }
   
-      const text = await response.text();
-      const data = text ? JSON.parse(text) : {};
-  
+      const data = await response.json();
       if (data.status === "success") {
-        console.log("Success:", data);
         router.back();
       } else {
         setError(data.message || "An error occurred while updating the profile.");

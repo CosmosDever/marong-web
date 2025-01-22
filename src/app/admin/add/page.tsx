@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "../../component/sidebar";
 import { uploadImage } from "../../component/imageUpload";
 import axios from "axios";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 
 export default function AddAdmin() {
@@ -29,78 +29,61 @@ export default function AddAdmin() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      window.location.href = "/login"; // Redirect หากไม่มี token
+      window.location.href = "/login";
     }
   }, []);
 
-  const handleFileChange = async (event: any) => {
+  const handleFileChange = (event: any) => {
     const file = event.target.files ? event.target.files[0] : null;
     if (file) {
       if (!file.type.startsWith("image/")) {
         setErrorMessage("โปรดเลือกไฟล์รูปภาพที่ถูกต้อง");
         return;
       }
-
-      if (file.size > 5000000) {
-        setErrorMessage("ขนาดไฟล์รูปภาพใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดเล็กกว่า 5MB");
-        return;
-      }
-
+  
       setImagePreview(URL.createObjectURL(file));
-
-      try {
-        setLoading(true);
-        const publicURL = await uploadImage(file);
-        setFormData({ ...formData, picture: publicURL });
-      } catch (error) {
-        console.error(error);
-        setErrorMessage("ไม่สามารถอัปโหลดรูปภาพได้ กรุณาลองอีกครั้ง");
-      } finally {
-        setLoading(false);
-      }
+      setFormData({ ...formData, picture: file });
     }
   };
-
-  const handleChange = (event: any) => {
-    const { name, value } = event.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleCancel = () => {
-    router.back();
-  };
-
+  
   const handleSubmit = async (event: any) => {
     event.preventDefault();
-
+  
     const token = localStorage.getItem("token");
     if (!token) {
       setErrorMessage("กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ");
       window.location.href = "/login";
       return;
     }
-
+  
     if (formData.password !== formData.confirmPassword) {
       setErrorMessage("รหัสผ่านไม่ตรงกัน");
       return;
     }
-
+  
     try {
       setLoading(true);
       setErrorMessage("");
       setSuccessMessage("");
-
+  
+      let pictureURL = "";
+  
+      if (formData.picture) {
+        const file = formData.picture as unknown as File;
+        pictureURL = await uploadImage(file); 
+      }
+  
       const requestBody = {
         fullName: formData.fullName,
         gmail: formData.gmail,
-        picture: formData.picture,
+        picture: pictureURL,
         password: formData.password,
         birthday: formData.birthday,
         telephone: formData.telephone,
         gender: formData.gender,
         role: formData.role,
       };
-
+  
       const response = await axios.post(
         "http://localhost:8080/api/admin/add",
         requestBody,
@@ -111,26 +94,16 @@ export default function AddAdmin() {
           },
         }
       );
-
+  
       if (response?.data?.status === "success") {
         const { id, full_name, gmail, role } = response.data.data;
         setSuccessMessage(
           `เพิ่มบัญชีสำเร็จ: ID: ${id}, Name: ${full_name}, Email: ${gmail}, Role: ${role}`
         );
-
-        // รีเซ็ตข้อมูลฟอร์ม
-        setFormData({
-          fullName: "",
-          gmail: "",
-          picture: "",
-          password: "",
-          confirmPassword: "",
-          birthday: "",
-          telephone: "",
-          gender: "",
-          role: "",
+  
+        setTimeout(() => {
+          router.back();
         });
-        setImagePreview("");
       } else {
         throw new Error(response?.data?.message || "ไม่สามารถเพิ่มบัญชีได้");
       }
@@ -140,8 +113,18 @@ export default function AddAdmin() {
     } finally {
       setLoading(false);
     }
+  };
+  
+
+  const handleChange = (event: any) => {
+    const { name, value } = event.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleCancel = () => {
     router.back();
   };
+
 
 
   return (
