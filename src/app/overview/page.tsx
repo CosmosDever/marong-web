@@ -2,9 +2,150 @@
 
 import { FC, useState, useEffect, useRef, JSX } from "react";
 import Head from "next/head";
-import Sidebar from "../component/Sidebar";
+import Sidebar from "../component/sidebar";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { useMemo } from 'react';
+
+interface Location {
+  coordinates: [string, string]; // Coordinates are now an array of two strings
+  description: string; // Description of the location (e.g., street name)
+}
+
+interface CaseDetails {
+  case_id: string;
+  category: string;
+  location: Location; // Updated to include location details
+  status: string;
+}
+
+interface AllCaseData {
+  total_all_cases: number;
+  waiting_all_cases: number;
+  inprogress_all_cases: number;
+  done_all_case: number;
+  cancel_all_cases: number;
+  toMap: CaseDetails[]; // Array of case details
+}
+
+interface ApiResponse {
+  statusCode: string;
+  statusMessage: string;
+  data: AllCaseData; // The 'data' field contains AllCaseData
+}
+
+
+interface RoadLocation {
+  coordinates: [number, number]; // Coordinates as an array of strings
+  description: string; // Description of the location (e.g., street name)
+}
+
+interface RoadCaseDetails {
+  case_id: string;
+  category: string;
+  location: RoadLocation; // Updated to include location details
+  status: string;
+}
+
+interface RoadAllCaseData {
+  total_all_cases: number;
+  waiting_all_cases: number;
+  inprogress_all_cases: number;
+  done_all_case: number;
+  cancel_all_cases: number;
+  toMap: RoadCaseDetails[]; // Array of case details
+}
+
+interface RoadApiResponse {
+  statusCode: string;
+  statusMessage: string;
+  data: RoadAllCaseData; // The 'data' field contains RoadAllCaseData
+}
+
+
+interface WireLocation {
+  coordinates: [number, number]; // Coordinates as an array of numbers
+  description: string; // Description of the location (e.g., street name)
+}
+
+interface WireCaseDetails {
+  case_id: string;
+  category: string;
+  location: WireLocation;
+  status: string;
+}
+
+interface WireAllCaseData {
+  total_all_cases: number;
+  waiting_all_cases: number;
+  inprogress_all_cases: number;
+  done_all_case: number;
+  cancel_all_cases: number;
+  toMap: WireCaseDetails[];
+}
+
+interface WireApiResponse {
+  statusCode: string;
+  statusMessage: string;
+  data: WireAllCaseData;
+}
+
+
+interface PavementLocation {
+  coordinates: [number, number]; // Coordinates as an array of numbers
+  description: string; // Description of the location (e.g., street name)
+}
+
+interface PavementCaseDetails {
+  case_id: string;
+  category: string;
+  location: PavementLocation;
+  status: string;
+}
+
+interface PavementAllCaseData {
+  total_all_cases: number;
+  waiting_all_cases: number;
+  inprogress_all_cases: number;
+  done_all_case: number;
+  cancel_all_cases: number;
+  toMap: PavementCaseDetails[];
+}
+
+interface PavementApiResponse {
+  statusCode: string;
+  statusMessage: string;
+  data: PavementAllCaseData;
+}
+
+
+
+interface OverpassLocation {
+  coordinates: [number, number]; // Coordinates as an array of numbers
+  description: string; // Description of the location (e.g., street name)
+}
+
+interface OverpassCaseDetails {
+  case_id: string;
+  category: string;
+  location: OverpassLocation;
+  status: string;
+}
+
+interface OverpassAllCaseData {
+  total_all_cases: number;
+  waiting_all_cases: number;
+  inprogress_all_cases: number;
+  done_all_case: number;
+  cancel_all_cases: number;
+  toMap: OverpassCaseDetails[];
+}
+
+interface OverpassApiResponse {
+  statusCode: string;
+  statusMessage: string;
+  data: OverpassAllCaseData;
+}
 
 
 mapboxgl.accessToken = "pk.eyJ1IjoicHJhbTQ3IiwiYSI6ImNtNXRzMzdnZDEwZjkyaXEwbzU3Y2J2cnQifQ.3e4ZNgqhVduJkxgtzMCkUw"; // Replace with your Mapbox token
@@ -14,122 +155,351 @@ const OverviewPage: FC = (): JSX.Element => {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const [selectedCase, setSelectedCase] = useState("All Case");
   const [caseData, setCaseData] = useState<any>(null);
-  const [mapData, setMapData] = useState<any[]>([]);
   const [caseCount, setCaseCount] = useState(0);
   const [selectedCaseDetails, setSelectedCaseDetails] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filters, setFilters] = useState({ showWaiting: true, showInProgress: true, showDone: true });
 
-  type CaseType = "All Case" | "Street" | "Wire" | "Pavement" | "Overpass";
+  const [mapData, setMapData] = useState<any[]>([]);
+  const stableMapData = useMemo(() => mapData, [mapData]);
 
-  const allData: Record<CaseType, { total: number; waiting: number; inprogress: number; done: number; to_map: { case_id: string; category: string; location: { coordinates: number[]; description: string; }; status: string; }[]; }> = {
-    "All Case": {
-      total: 150,
-      waiting: 80,
-      inprogress: 40,
-      done: 30,
-      to_map: [
-        { case_id: "301", category: "Street", location: { coordinates: [100.4171, 13.7367], description: "Bangkok" }, status: "Waiting" },
-        { case_id: "401", category: "Wire", location: { coordinates: [100.5171, 13.7367], description: "Bangkok" }, status: "Done" },
-        { case_id: "501", category: "Pavement", location: { coordinates: [100.6171, 13.7367], description: "Bangkok" }, status: "In Progress" },
-        { case_id: "601", category: "Overpass", location: { coordinates: [100.7171, 13.7367], description: "Bangkok" }, status: "Waiting" },
-      ],
-    },
-    "Street": {
-      total: 1,
-      waiting: 2,
-      inprogress: 3,
-      done: 4,
-      to_map: [
-        { case_id: "301", category: "Street", location: { coordinates: [100.4171, 13.7367], description: "Bangkok" }, status: "Waiting" },
-      ],
-    },
-    "Wire": { 
-      total: 5,
-      waiting: 6,
-      inprogress: 7,
-      done: 8,
-      to_map: [
-        { case_id: "401", category: "Wire", location: { coordinates: [100.5171, 13.7367], description: "Bangkok" }, status: "Done" },
-      ],
-    },
-    "Pavement": { 
-      total: 9,
-      waiting: 10,
-      inprogress: 11,
-      done: 12,
-      to_map: [
-        { case_id: "501", category: "Pavement", location: { coordinates: [100.6171, 13.7367], description: "Bangkok" }, status: "In Progress" },
-      ],
-    },
-    "Overpass": { 
-      total: 13,
-      waiting: 14,
-      inprogress: 15,
-      done: 16,
-      to_map: [
-        { case_id: "601", category: "Overpass", location: { coordinates: [100.7171, 13.7367], description: "Bangkok" }, status: "Waiting" },
-      ],
-    },
-  };
+  // All Case Data State
+  const [allCaseData, setAllCaseData] = useState<AllCaseData | null>(null);
+  const [allCaseError, setAllCaseError] = useState<string | null>(null);
+  const [allCaseLoading, setAllCaseLoading] = useState<boolean>(true);
 
-  type CaseDetail = {
-    case_id: string;
-    category: string;
-    location: {
-      coordinates: number[];
-      description: string;
-    };
-    detail: string;
-    date_opened: Date;
-    date_closed: Date | null;
-    picture: string;
-    picture_done: string;
-    status: string;
-  };
+  // Road Case Data State
+  const [roadData, setRoadData] = useState<RoadAllCaseData | null>(null);
+  const [roadMapData, setRoadMapData] = useState<RoadCaseDetails[]>([]);
+  const [roadError, setRoadError] = useState<string | null>(null);
+  const [roadLoading, setRoadLoading] = useState<boolean>(true);
+
+  // State for Wire Case Data
+  const [wireData, setWireData] = useState<WireAllCaseData | null>(null);
+  const [wireMapData, setWireMapData] = useState<WireCaseDetails[]>([]);
+  const [wireError, setWireError] = useState<string | null>(null);
+  const [wireLoading, setWireLoading] = useState<boolean>(true);
+
+  // State for Pavement Case Data
+  const [pavementData, setPavementData] = useState<PavementAllCaseData | null>(null);
+  const [pavementMapData, setPavementMapData] = useState<PavementCaseDetails[]>([]);
+  const [pavementError, setPavementError] = useState<string | null>(null);
+  const [pavementLoading, setPavementLoading] = useState<boolean>(true);
   
-  type DatabyidType = {
-    [key: string]: {
-      to_map: CaseDetail[];
-    };
-  };
-  
-  const Databyid: DatabyidType = {
-    "All Case": {
-      to_map: [
-        {
-          case_id: "401",
-          category: "Wire",
-          location: { coordinates: [100.5171, 13.7367], description: "Bangkok" },
-          detail: "Wire on main road causing traffic issues.",
-          status: "Done",
-          date_opened: new Date("2024-11-19T08:00:00Z"),
-          date_closed: new Date("2024-12-19T08:00:00Z"),
-          picture: "https://storage.googleapis.com/traffy_public_bucket/attachment/2025-01/d4e8937d9eed5c598b4ac8b2fc11df2b8da22069.jpg",
-          picture_done: "https://storage.googleapis.com/traffy_public_bucket/attachment/2025-01/13267007216cfcf5ee08f54c5481a2829cea0552.jpg",
-        },
-      ],
-    },
-    Street: {
-      to_map: [
-        {
-          case_id: "301",
-          category: "Street",
-          location: { coordinates: [100.4171, 13.7367], description: "Bangkok" },
-          detail: "Damaged street requiring urgent repair.",
-          status: "Waiting",
-          date_opened: new Date("2024-12-19T08:00:00Z"),
-          date_closed: null,
-          picture: "newsimage.png",
-          picture_done: "",
-        },
-      ],
-    },
-    // Add other cases
-  };
+  // State for Overpass Case Data
+  const [overpassData, setOverpassData] = useState<OverpassAllCaseData | null>(null);
+  const [overpassMapData, setOverpassMapData] = useState<OverpassCaseDetails[]>([]);
+  const [overpassError, setOverpassError] = useState<string | null>(null);
+  const [overpassLoading, setOverpassLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Initialize map
+    const fetchAllCaseData = async () => {
+      const token = localStorage.getItem("token");
+  
+      if (!token) {
+        setAllCaseError("No token found");
+        setAllCaseLoading(false);
+        return;
+      }
+  
+      try {
+        const response = await fetch("http://localhost:8080/api/overview/all", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+  
+        const data: ApiResponse = await response.json();
+  
+        if (data.statusCode === "200") {
+          const formattedAllcase: AllCaseData = {
+            total_all_cases: data.data.total_all_cases,
+            waiting_all_cases: data.data.waiting_all_cases,
+            inprogress_all_cases: data.data.inprogress_all_cases,
+            done_all_case: data.data.done_all_case,
+            cancel_all_cases: data.data.cancel_all_cases,
+            toMap: data.data.toMap.map((caseItem) => ({
+              case_id: caseItem.case_id,
+              category: caseItem.category,
+              location: {
+                coordinates: [100.5171, 13.7367], // Hardcoded for testing
+                description: caseItem.location.description,
+              },
+              // status: caseItem.status,
+              status: "Waiting",
+            })),
+          };
+  
+          setAllCaseData(formattedAllcase);
+          setMapData(formattedAllcase.toMap); // Set initial data for the map
+          updateMap(formattedAllcase.toMap, "All Case"); // Update map with all cases
+        } else {
+          throw new Error("Failed to load cases");
+        }
+      } catch (err: any) {
+        setAllCaseError(err.message);
+      } finally {
+        setAllCaseLoading(false);
+      }
+    };
+  
+    fetchAllCaseData();
+  }, []); // Runs once when the component mounts
+  
+  
+  useEffect(() => {
+    const fetchRoadData = async () => {
+      const token = localStorage.getItem("token");
+  
+      try {
+        const response = await fetch("http://localhost:8080/api/overview/road", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+  
+        const data: RoadApiResponse = await response.json();
+  
+        if (data.statusCode === "200") {
+          const formattedRoadData: RoadAllCaseData = {
+            total_all_cases: data.data.total_all_cases,
+            waiting_all_cases: data.data.waiting_all_cases,
+            inprogress_all_cases: data.data.inprogress_all_cases,
+            done_all_case: data.data.done_all_case,
+            cancel_all_cases: data.data.cancel_all_cases,
+            toMap: data.data.toMap.map((caseItem) => ({
+              case_id: caseItem.case_id,
+              category: caseItem.category,
+              location: {
+                // Hardcoded coordinates as numbers
+                coordinates: [100.4171, 13.7367],
+                description: caseItem.location.description,
+              },
+              // status: caseItem.status,
+              status: "Waiting",              
+            })),
+          };
+  
+          setRoadData(formattedRoadData);
+          setMapData(formattedRoadData.toMap); // Set the map data here after fetching
+        } else {
+          throw new Error("Failed to load road cases");
+        }
+      } catch (err: any) {
+        setRoadError(err.message);
+      } finally {
+        setRoadLoading(false);
+      }
+    };
+  
+    fetchRoadData();
+  }, []);
+
+
+
+  useEffect(() => {
+    const fetchWireData = async () => {
+      const token = localStorage.getItem("token");
+  
+      if (!token) {
+        setWireError("No token found");
+        setWireLoading(false);
+        return;
+      }
+  
+      try {
+        const response = await fetch("http://localhost:8080/api/overview/wire", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+  
+        const data: WireApiResponse = await response.json();
+  
+        if (data.statusCode === "200") {
+          const formattedWireData: WireAllCaseData = {
+            total_all_cases: data.data.total_all_cases,
+            waiting_all_cases: data.data.waiting_all_cases,
+            inprogress_all_cases: data.data.inprogress_all_cases,
+            done_all_case: data.data.done_all_case,
+            cancel_all_cases: data.data.cancel_all_cases,
+            toMap: data.data.toMap.map((caseItem) => ({
+              case_id: caseItem.case_id,
+              category: caseItem.category,
+              location: {
+                coordinates: [100.3171, 13.7367], // Example hardcoded coordinates
+                description: caseItem.location.description,
+              },
+              status: caseItem.status,
+            })),
+          };
+  
+          setWireData(formattedWireData);
+          setWireMapData(formattedWireData.toMap); // Update map data for wire cases
+        } else {
+          throw new Error("Failed to load wire cases");
+        }
+      } catch (err: any) {
+        setWireError(err.message);
+      } finally {
+        setWireLoading(false);
+      }
+    };
+  
+    fetchWireData();
+  }, []);
+
+
+
+  useEffect(() => {
+    const fetchPavementData = async () => {
+      const token = localStorage.getItem("token");
+  
+      if (!token) {
+        setPavementError("No token found");
+        setPavementLoading(false);
+        return;
+      }
+  
+      try {
+        const response = await fetch("http://localhost:8080/api/overview/pavement", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+  
+        const data: PavementApiResponse = await response.json();
+  
+        if (data.statusCode === "200") {
+          const formattedPavementData: PavementAllCaseData = {
+            total_all_cases: data.data.total_all_cases,
+            waiting_all_cases: data.data.waiting_all_cases,
+            inprogress_all_cases: data.data.inprogress_all_cases,
+            done_all_case: data.data.done_all_case,
+            cancel_all_cases: data.data.cancel_all_cases,
+            toMap: data.data.toMap.map((caseItem) => ({
+              case_id: caseItem.case_id,
+              category: caseItem.category,
+              location: {
+                coordinates: [100.3171, 13.7367], // Example hardcoded coordinates
+                description: caseItem.location.description,
+              },
+              // status: caseItem.status,
+              status: "Done",
+            })),
+          };
+  
+          setPavementData(formattedPavementData);
+          setPavementMapData(formattedPavementData.toMap); // Update map data for wire cases
+        } else {
+          throw new Error("Failed to load pavement cases");
+        }
+      } catch (err: any) {
+        setPavementError(err.message);
+      } finally {
+        setPavementLoading(false);
+      }
+    };
+  
+    fetchPavementData();
+  }, []);
+
+
+
+  useEffect(() => {
+    const fetchOverpassData = async () => {
+      const token = localStorage.getItem("token");
+  
+      if (!token) {
+        setOverpassError("No token found");
+        setOverpassLoading(false);
+        return;
+      }
+  
+      try {
+        const response = await fetch("http://localhost:8080/api/overview/overpass", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+  
+        const data: OverpassApiResponse = await response.json();
+  
+        if (data.statusCode === "200") {
+          const formattedOverpassData: OverpassAllCaseData = {
+            total_all_cases: data.data.total_all_cases,
+            waiting_all_cases: data.data.waiting_all_cases,
+            inprogress_all_cases: data.data.inprogress_all_cases,
+            done_all_case: data.data.done_all_case,
+            cancel_all_cases: data.data.cancel_all_cases,
+            toMap: data.data.toMap.map((caseItem) => ({
+              case_id: caseItem.case_id,
+              category: caseItem.category,
+              location: {
+                coordinates: [100.6171, 13.7367], // Example hardcoded coordinates
+                description: caseItem.location.description,
+              },
+              status: caseItem.status,
+            })),
+          };
+  
+          setOverpassData(formattedOverpassData);
+          setOverpassMapData(formattedOverpassData.toMap); // Update map data for wire cases
+        } else {
+          throw new Error("Failed to load overpass cases");
+        }
+      } catch (err: any) {
+        setOverpassError(err.message);
+      } finally {
+        setOverpassLoading(false);
+      }
+    };
+  
+    fetchOverpassData();
+  }, []);
+  
+  
+
+  
+  // useEffect(() => {
+  //   if (mapRef.current) {
+  //     const caseToUse = selectedCase || "All Case";
+  //     updateMap(mapData, caseToUse);
+  //   }
+  // }, [mapData, selectedCase]); // Combined dependencies
+
+
+  useEffect(() => {
     if (mapContainerRef.current && !mapRef.current) {
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
@@ -141,52 +511,68 @@ const OverviewPage: FC = (): JSX.Element => {
       mapRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
   
       mapRef.current.on("load", () => {
-        handleCaseChange("All Case"); // Load all cases initially
+        // Update map once it's loaded and data is available
+        if (allCaseData?.toMap) {
+          updateMap(allCaseData.toMap, "All Case");
+        }
       });
     }
-  }, []);
+  }, [allCaseData]); // Runs whenever `allCaseData` changes
   
-  useEffect(() => {
-    // Update markers whenever filters or mapData change
-    updateMap(mapData);
-  }, [mapData, filters]); // Depend on mapData and filters
-  
-  const updateMap = (mapData: any[]) => {
+
+
+
+  const updateMap = (mapData: any[], filter: string = "All Case", currentFilters = filters) => {
     if (!mapRef.current) {
       console.error("Map is not initialized.");
       return;
     }
+  
+    console.log("Updating map with data:", mapData, "Filter:", filter);
   
     const map = mapRef.current;
   
     // Clear existing markers
     document.querySelectorAll(".mapboxgl-marker").forEach((marker) => marker.remove());
   
+    // Define category colors for markers
     const categoryColors: Record<string, string> = {
-      Street: "purple",
-      Wire: "blue",
-      Pavement: "green",
-      Overpass: "yellow",
+      "Road Damage": "red",
+      "Damaged Sidewalk": "green",
+      "Wire Issues": "blue",
+      "Overpass Issues": "yellow",
     };
   
-    // Add markers based on filters
-    mapData.forEach((item) => {
+    // Filter by category if necessary
+    let filteredData = mapData;
+    if (filter !== "All Case") {
+      filteredData = filteredData.filter((item) => item.category === filter);
+      console.log("Filtered by category:", filteredData);
+    }
+  
+    // Further filter by status
+    filteredData = filteredData.filter((item) => {
+      const statusMatch =
+        (item.status === "Waiting" && currentFilters.showWaiting) ||
+        (item.status === "In Progress" && currentFilters.showInProgress) ||
+        (item.status === "Done" && currentFilters.showDone);
+  
+      return statusMatch;
+    });
+
+    
+  
+    console.log("Filtered by status:", currentFilters, filteredData);
+    
+  
+    // Add markers for filtered data
+    filteredData.forEach((item) => {
       if (!item.location.coordinates || item.location.coordinates.length !== 2) {
         console.warn("Invalid coordinates for marker:", item);
         return;
       }
   
-      // **Correct filter logic**
-      const isWaitingVisible = item.status === "Waiting" && filters.showWaiting;
-      const isInProgressVisible = item.status === "In Progress" && filters.showInProgress;
-      const isDoneVisible = item.status === "Done" && filters.showDone;
-  
-      // Only add the marker if it's visible based on the filters
-      if (!(isWaitingVisible || isInProgressVisible || isDoneVisible)) {
-        return;
-      }
-  
-      const markerColor = categoryColors[item.category] || "red";
+      const markerColor = categoryColors[item.category] || "gray";
   
       const marker = document.createElement("div");
       marker.className = "marker";
@@ -201,41 +587,110 @@ const OverviewPage: FC = (): JSX.Element => {
         .addTo(map)
         .getElement()
         .addEventListener("click", () => {
-          console.log("Marker clicked:", item);
-          const caseId = item.case_id;
-  
-          const caseDetails = Object.values(Databyid)
-            .flatMap((category) => category.to_map)
-            .find((caseItem) => caseItem.case_id === caseId);
-  
-          if (caseDetails) {
-            setSelectedCaseDetails({ ...caseDetails });
-            setIsModalOpen(true);
-          } else {
-            console.warn("No case details found for case_id:", caseId);
-          }
+          setSelectedCaseDetails(item); // Show details when marker is clicked
+          setIsModalOpen(true);         // Open the modal
         });
     });
   };
   
+  const handleFilterChange = (filterType: keyof typeof filters, isChecked: boolean) => {
+    // Prevent excessive re-rendering
+    if (filters[filterType] === isChecked) return;
+  
+    // Update state
+    const updatedFilters = { ...filters, [filterType]: isChecked };
+    setFilters(updatedFilters);
+  
+    // Refresh map with updated filters
+    updateMap(mapData, selectedCase, updatedFilters); // Pass updated filters directly
+  };
   
 
-  const handleCaseChange = (caseType: CaseType) => {
+  
+  const filteredCases = mapData.filter((caseItem: CaseDetails) => {
+    // Apply status filter
+    const matchesStatus =
+      (filters.showWaiting && caseItem.status === "Waiting") ||
+      (filters.showInProgress && caseItem.status === "In Progress") ||
+      (filters.showDone && caseItem.status === "Done");
+  
+    // Apply category filter
+    const matchesCategory =
+      selectedCase === "All Case" || caseItem.category === selectedCase;
+  
+    return matchesStatus && matchesCategory;
+  });
+  
+
+  
+
+  
+  
+
+  const handleCaseChange = (caseType: string) => {
     setSelectedCase(caseType);
-    const data = allData[caseType];
-    setCaseData(data);
-    setMapData(data.to_map);
-    updateMap(data.to_map);
+  
+    if (caseType === "Street" && roadData) {
+      console.log("Street data:", roadData.toMap); // Check if the correct data is being passed
+      setMapData(roadData.toMap);
+      updateMap(roadData.toMap);  // Ensure the map is updated immediately with new data
+    } else if (caseType === "All Case" && allCaseData) {
+      console.log("All case data:", allCaseData.toMap); // Check if the correct data is being passed
+      setMapData(allCaseData.toMap);
+      updateMap(allCaseData.toMap);
+    }else if (caseType === "Wire" && allCaseData) {
+      if (wireData) {
+        console.log("Wire data:", wireData.toMap); // Check if the correct data is being passed
+        setMapData(wireData.toMap);
+        updateMap(wireData.toMap);
+      }
+    }else if (caseType === "Pavement" && allCaseData) {
+      if (pavementData) {
+        console.log("Pavement data:", pavementData.toMap); // Check if the correct data is being passed
+        setMapData(pavementData.toMap);
+        updateMap(pavementData.toMap);
+      }
+    }else if (caseType === "Overpass" && allCaseData) {
+      if (overpassData) {
+        console.log("Overpass data:", overpassData.toMap); // Check if the correct data is being passed
+        setMapData(overpassData.toMap);
+        updateMap(overpassData.toMap);
+      }
+    }
   };
+  
 
-  const handleFilterChange = (filterName: string, value: boolean) => {
-    setFilters((prevFilters) => {
-      const updatedFilters = { ...prevFilters, [filterName]: value };
-      updateMap(mapData); // Ensure the map updates immediately with the new filters
-      return updatedFilters;
-    });
-  };
+  useEffect(() => {
+    // Update the map whenever the filters change
+    if (mapRef.current) {
+      updateMap(mapData, selectedCase);  // You can pass `selectedCase` to keep the filter context consistent
+    }
+  }, [filters]);  // Dependency on filters to trigger a map update when filters change
+  
 
+  
+
+  
+  // useEffect(() => {
+  //   if (mapRef.current) {
+  //     // Apply the filter when map data or filters change
+  //     const filteredMapData = mapData.filter((caseItem) => {
+  //       if (filters.showWaiting && caseItem.status === "Waiting") {
+  //         return true;
+  //       }
+  //       if (filters.showInProgress && caseItem.status === "In Progress") {
+  //         return true;
+  //       }
+  //       if (filters.showDone && caseItem.status === "Done") {
+  //         return true;
+  //       }
+  //       return false;
+  //     });
+  
+  //     // Update the map with the filtered data
+  //     updateMap(filteredMapData);
+  //   }
+  // }, [mapData, filters]); // Runs when mapData or filters change
 
 
   return (
@@ -254,7 +709,14 @@ const OverviewPage: FC = (): JSX.Element => {
               <div className="flex items-center">
                 <span className="text-black font-semibold text-lg">{selectedCase}</span>
                 <div className="ml-3 w-20 h-20 bg-[#E8EBF5] flex items-center justify-center rounded-2xl">
-                  <span className="text-gray-800 font-bold text-3xl">{caseData?.total}</span>
+                  {/* <span className="text-gray-800 font-bold text-3xl">{selectedCase === 'All Case' ? allCaseData?.total_all_cases : roadData?.total_all_cases}</span> */}
+                <span className="text-gray-800 font-bold text-3xl">
+                  {selectedCase === 'All Case' ? allCaseData?.total_all_cases :
+                   selectedCase === 'Street' ? roadData?.total_all_cases :
+                   selectedCase === 'Pavement' ? pavementData?.total_all_cases :
+                   selectedCase === 'Overpass' ? overpassData?.total_all_cases :
+                   selectedCase === 'Wire' ? wireData?.total_all_cases : 0}
+                </span>
                 </div>
               </div>
             </div>
@@ -266,7 +728,7 @@ const OverviewPage: FC = (): JSX.Element => {
                       <th
                         key={caseType}
                         className={`p-4 text-left text-black font-medium cursor-pointer ${selectedCase === caseType ? "underline decoration-[4px] decoration-[#1B369C]" : ""}`}
-                        onClick={() => handleCaseChange(caseType as CaseType)}
+                        onClick={() => handleCaseChange(caseType)}
                       >
                         {caseType}
                       </th>
@@ -279,7 +741,7 @@ const OverviewPage: FC = (): JSX.Element => {
               <div className="flex justify-between items-center w-full h-20">
                 <div className="flex flex-col items-center w-[30%] border-r-2 border-gray-300 -mt-3">
                   <span className="text-xl font-semibold">Waiting</span>
-                  <span className="text-lg text-gray-700">{caseData?.waiting}</span>
+                  <span className="text-lg text-gray-700">{allCaseData?.waiting_all_cases}</span>
                   <label className="flex items-center mt-0">
                     <input
                       type="checkbox"
@@ -292,7 +754,7 @@ const OverviewPage: FC = (): JSX.Element => {
                 </div>
                 <div className="flex flex-col items-center w-[30%] border-r-2 border-gray-300 -mt-3">
                   <span className="text-xl font-semibold">In Progress</span>
-                  <span className="text-lg text-gray-700">{caseData?.inprogress}</span>
+                  <span className="text-lg text-gray-700">{allCaseData?.inprogress_all_cases}</span>
                   <label className="flex items-center mt-0">
                     <input
                       type="checkbox"
@@ -305,7 +767,7 @@ const OverviewPage: FC = (): JSX.Element => {
                 </div>
                 <div className="flex flex-col items-center w-[30%] -mt-3">
                   <span className="text-xl font-semibold">Done</span>
-                  <span className="text-lg text-gray-700">{caseData?.done}</span>
+                  <span className="text-lg text-gray-700">{allCaseData?.done_all_case}</span>
                   <label className="flex items-center mt-0">
                     <input
                       type="checkbox"
@@ -342,8 +804,8 @@ const OverviewPage: FC = (): JSX.Element => {
         <p><strong>Location:</strong> {selectedCaseDetails.location.description}</p>
         <p><strong>Details:</strong> {selectedCaseDetails.detail}</p>
         <p><strong>Status:</strong> {selectedCaseDetails.status}</p>
-        <p><strong>Opened On:</strong> {selectedCaseDetails.date_opened.toLocaleDateString()}</p>
-        <p><strong>Closed On:</strong> {selectedCaseDetails.date_closed ? selectedCaseDetails.date_closed.toLocaleDateString() : "N/A"}</p>
+        <p><strong>Opened On:</strong> {selectedCaseDetails?.date_opened ? selectedCaseDetails.date_opened.toLocaleDateString() : "N/A"}</p>
+        <p><strong>Closed On:</strong> {selectedCaseDetails?.date_closed ? selectedCaseDetails.date_closed.toLocaleDateString() : "N/A"}</p>
       </div>
 
       {/* Image layout logic */}

@@ -4,10 +4,11 @@ import { FC, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Head from "next/head";
 import Image from "next/image";
-import Sidebar from "../../component/Sidebar";
+import Sidebar from "../../component/sidebar";
 import "mapbox-gl/dist/mapbox-gl.css";
 import mapboxgl from "mapbox-gl";
 import { GoogleMap, useJsApiLoader, Autocomplete } from "@react-google-maps/api";
+import { uploadImage } from "../../component/imageUpload";
 
 const AddNewsPage: FC = () => {
   const router = useRouter();
@@ -21,6 +22,20 @@ const AddNewsPage: FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const imageRef = useRef<HTMLDivElement | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    location: {
+      coordinates: [0, 0], // Default coordinates
+      description: "",
+    },
+    content: "",
+    picture: "",
+  });
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: "AIzaSyCrrohIKFYapXv-xhk9swyHjk6RwT0EpIA",
@@ -46,38 +61,44 @@ const AddNewsPage: FC = () => {
       marker.on("dragend", () => {
         const lngLat = marker.getLngLat();
         setMarkerCoordinates([lngLat.lng, lngLat.lat]);
+        setFormData((prev) => ({
+          ...prev,
+          location: { ...prev.location, coordinates: [lngLat.lng, lngLat.lat] },
+        }));
       });
+
+      mapRef.current = map;
+      markerRef.current = marker;
 
       return () => {
         map.remove();
       };
     }
-  }, [markerCoordinates]);
+  }, []);
 
-  const handleSave = () => {
-    const newData = {
-      status: "success",
-      message: "News article added successfully.",
-      data: {
-        title,
-        location: {
-          coordinates: markerCoordinates,
-          description,
-        },
-        picture: "", // Empty string for no default image
-        type: "News", // You can add a field for type as well
-        content,
-        last_updated: new Date().toISOString(),
-      },
-    };
 
-    setNotification(newData);
 
-    setTimeout(() => {
-      setNotification(null);
-      router.push("/news"); // Redirect to the news page after saving
-    }, 3000);
+  
+  const handleSave = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/api/News/addNews", {
+        method: "POST",
+        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) throw new Error("Failed to save news");
+
+      setNotification({ status: "success", message: "News saved successfully" });
+      setTimeout(() => router.push("/news"), 3000);
+    } catch (error) {
+      console.error(error);
+    }
   };
+
+
+
+
 
   const handleCancel = () => {
     setTitle("");
@@ -99,27 +120,63 @@ const AddNewsPage: FC = () => {
   const onPlaceChanged = () => {
     if (autocomplete) {
       const place = autocomplete.getPlace();
-      setDescription(place.formatted_address || "");
-      if (place.geometry) {
-        setMarkerCoordinates([
+      if (place.geometry && place.geometry.location) {
+        const newCoordinates: [number, number] = [
           place.geometry.location.lng(),
           place.geometry.location.lat(),
-        ]);
+        ];
+
+        // Update the marker's position
+        if (markerRef.current) {
+          markerRef.current.setLngLat(newCoordinates);
+        }
+
+        // Update state and formData
+        setMarkerCoordinates(newCoordinates);
+        setFormData((prev) => ({
+          ...prev,
+          location: {
+            coordinates: newCoordinates,
+            description: place.formatted_address || "",
+          },
+        }));
+
+        // Center the map to the new location
+        if (mapRef.current) {
+          mapRef.current.flyTo({ center: newCoordinates, zoom: 14 });
+        }
+      }
+    }
+  };
+  
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      setImagePreview(URL.createObjectURL(file));
+
+      try {
+        const publicURL = await uploadImage(file);
+        setFormData((prev) => ({
+          ...prev,
+          picture: publicURL,
+        }));
+      } catch (error) {
+        console.error(error);
       }
     }
   };
 
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string); // Set image preview URL
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
+
+
 
   return (
     <>
@@ -164,25 +221,31 @@ const AddNewsPage: FC = () => {
                 <div className="col-span-1">
                   <label className="block text-gray-700 font-semibold">Title:</label>
                   <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full p-2 border rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  className="p-2 border rounded-lg w-full"
+                  placeholder="Title"
+                />
                 </div>
 
                 <div className="col-span-1">
                   <label className="block text-gray-700 font-semibold">Location Description:</label>
                   {isLoaded && (
                     <Autocomplete
-                      onLoad={(a) => setAutocomplete(a)}
-                      onPlaceChanged={onPlaceChanged}
-                    >
+                    onLoad={(auto) => setAutocomplete(auto)}
+                    onPlaceChanged={onPlaceChanged}>
                       <input
-                        type="text"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        className="w-full p-2 border rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        name="description"
+                        value={formData.location.description}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            location: { ...prev.location, description: e.target.value },
+                          }))
+                        }
+                        className="p-2 border rounded-lg w-full"
+                        placeholder="Enter a Location"
                       />
                     </Autocomplete>
                   )}
@@ -191,11 +254,14 @@ const AddNewsPage: FC = () => {
                 <div className="col-span-2">
                   <label className="block text-gray-700 font-semibold">Content:</label>
                   <textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="w-full p-2 border rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={3}
-                  ></textarea>
+                    name="content"
+                    value={formData.content}
+                    onChange={handleInputChange}
+                    className="p-2 border rounded-lg w-full"
+                    placeholder="Content"
+                    rows={4}
+                  />
+                  
                 </div>
               </div>
 

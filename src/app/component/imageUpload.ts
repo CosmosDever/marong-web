@@ -4,7 +4,7 @@ import { supabase } from "../../../lib/supabaseClient";
 export async function uploadImage(file: File): Promise<string> {
     const fileName = `${Date.now()}_${file.name}`; // สร้างชื่อไฟล์แบบไม่ซ้ำ
     const { data, error } = await supabase.storage
-        .from("Marong_pic")
+        .from("Marong")
         .upload(fileName, file);
 
     if (error) {
@@ -12,7 +12,7 @@ export async function uploadImage(file: File): Promise<string> {
     }
 
     const { data: publicURLData } = supabase.storage
-        .from("Marong_pic")
+        .from("Marong")
         .getPublicUrl(fileName);
 
     if (!publicURLData) {

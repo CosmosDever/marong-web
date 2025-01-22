@@ -7,20 +7,102 @@ import Sidebar from "../component/sidebar";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-interface News {
-  id: number;
-  title: string;
-  date: string;
+
+
+
+
+
+interface NewsLocation {
+  coordinates: [string, string]; // Array of two strings representing coordinates
+  description: string; // Location description
+}
+
+interface NewsDetails {
+  id: string; // Unique identifier for the news
+  picture: string; // URL of the news image
+  title: string; // Title of the news
+  date: string; // Date of the news (YYYY-MM-DD format)
+  location: NewsLocation; // Location details
+  content: string; // Content or description of the news
+  type: string; // Type/category of the news
+}
+
+interface NewsApiResponse {
+  statusCode: string; // API response status code
+  statusMessage: string; // API response message
+  data: NewsDetails[]; // Array of news items
 }
 
 const NewsPage = () => {
-  const [news, setNews] = useState<News[]>([]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [formData, setFormData] = useState<any>({});
   const [notification, setNotification] = useState<any>(null);
   const router = useRouter();
+
+
+  const [newsData, setNewsData] = useState<NewsDetails[] | null>(null);
+  const [news, setNews] = useState<NewsDetails[]>([]);
+  const [newsError, setNewsError] = useState<string | null>(null);
+  const [newsLoading, setNewsLoading] = useState<boolean>(true);
+  
+  useEffect(() => {
+    const fetchNewsData = async () => {
+      const token = localStorage.getItem("token");
+  
+      if (!token) {
+        setNewsError("No token found");
+        setNewsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:8080/api/News/all", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+  
+        const data: NewsApiResponse = await response.json();
+  
+        if (data.statusCode === "200") {
+          const formattedNews = data.data.map((newsItem: NewsDetails) => ({
+            id: newsItem.id,
+            picture: newsItem.picture,
+            title: newsItem.title,
+            date: newsItem.date,
+            type: newsItem.type,
+            location: {
+              coordinates: ["100.5171", "13.7367"], // Hardcoded for testing
+              description: newsItem.location.description,
+            },
+            content: newsItem.content,
+          }));
+          setNewsData(formattedNews as NewsDetails[]); // Save the news data to state
+          console.log("Fetching news...");
+
+        } else {
+          throw new Error(data.statusMessage || "Failed to fetch news data");
+        }
+      } catch (err: any) {
+        setNewsError(err.message);
+      } finally {
+        setNewsLoading(false);
+      }
+    };
+  
+    fetchNewsData();
+  }, []);
+
+
 
   // useEffect(() => {
   //   const fetchNews = async () => {
@@ -42,41 +124,52 @@ const NewsPage = () => {
   //   fetchNews();
   // }, []);
 
-  const newsData = {
-    status: "success",
-    data: [
-      {
-        id: 1,
-        title: "Road Repair Scheduled",
-        picture: "https://storage.googleapis.com/traffy_public_bucket/attachment/2025-01/f107145c5f893f2b7ca9a00a40d6abbe8fac04eb.jpg",
-        content: "The government has scheduled road repairs for the upcoming week.",
-        type: "Road",
-        date: "2024-12-30",
-        location: {
-          coordinates: [100.4171, 13.7367],  // Add the coordinates here
-          description: "Bangkok, Thailand"
-        }
-      },
-      {
-        id: 2,
-        title: "Pavement Damage Alert",
-        picture: "https://storage.googleapis.com/traffy_public_bucket/attachment/2025-01/f107145c5f893f2b7ca9a00a40d6abbe8fac04eb.jpg",
-        content: "Authorities have issued an alert about damaged pavements in downtown.",
-        type: "Pavement",
-        date: "2024-12-29",
-        location: {
-          coordinates: [100.5183, 13.7361],  // Add the coordinates here
-          description: "Downtown Bangkok, Thailand"
-        }
-      }
-    ]
-  };
+  // const newsData = {
+  //   status: "success",
+  //   data: [
+  //     {
+  //       id: 1,
+  //       title: "Road Repair Scheduled",
+  //       picture: "https://storage.googleapis.com/traffy_public_bucket/attachment/2025-01/f107145c5f893f2b7ca9a00a40d6abbe8fac04eb.jpg",
+  //       content: "The government has scheduled road repairs for the upcoming week.",
+  //       type: "Road",
+  //       date: "2024-12-30",
+  //       location: {
+  //         coordinates: [100.4171, 13.7367],  // Add the coordinates here
+  //         description: "Bangkok, Thailand"
+  //       }
+  //     },
+  //     {
+  //       id: 2,
+  //       title: "Pavement Damage Alert",
+  //       picture: "https://storage.googleapis.com/traffy_public_bucket/attachment/2025-01/f107145c5f893f2b7ca9a00a40d6abbe8fac04eb.jpg",
+  //       content: "Authorities have issued an alert about damaged pavements in downtown.",
+  //       type: "Pavement",
+  //       date: "2024-12-29",
+  //       location: {
+  //         coordinates: [100.5183, 13.7361],  // Add the coordinates here
+  //         description: "Downtown Bangkok, Thailand"
+  //       }
+  //     }
+  //   ]
+  // };
   
   
   useEffect(() => {
-    setNews(newsData.data);
+    if (newsData) {
+      setNews(newsData.map((newsItem) => ({
+        id: newsItem.id,
+        picture: newsItem.picture,
+        title: newsItem.title,
+        date: newsItem.date,
+        location: newsItem.location,
+        content: newsItem.content,
+        type: newsItem.type,
+      })));
+    }
     setIsLoading(false);
-  }, []);
+  }, [newsData]);
+  
 
   const handleAddNewsClick = () => {
     router.push("/news/addnews"); // Navigate to /news/addnews
@@ -94,9 +187,7 @@ const NewsPage = () => {
   };
 
   const handleConfirm = () => {
-    if (selectedRowId !== null) {
-      setNews((prevNews) => prevNews.filter((item) => item.id !== selectedRowId));
-    }
+    setNews((prevNews: NewsDetails[]) => prevNews.filter((item: NewsDetails) => item.id !== selectedRowId?.toString()));
     setIsPopupVisible(false);
     setSelectedRowId(null);
   };
@@ -162,9 +253,9 @@ const NewsPage = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <tbody>
-                    {news.map((item) => (
+                    {newsData && newsData.map((news) => (
                       <tr
-                        key={item.id}
+                        key={news.id}
                         className="bg-[#E9ECF9] rounded-lg shadow-lg"
                         style={{
                           width: "90%",
@@ -191,24 +282,24 @@ const NewsPage = () => {
                           className="p-2 border text-center align-middle" // Centers horizontally and vertically
                           style={{ width: "190px", height: "120px" }}
                         >
-                          {item.id}
+                          {news.id}
                         </td>
                         <td
                           className="p-2 border text-center align-middle" // Centers horizontally and vertically
                           style={{ width: "200px", height: "120px" }}
                         >
-                          {item.title}
+                          {news.title}
                         </td>
                         <td
                           className="p-2 border text-center align-middle" // Centers horizontally and vertically
                           style={{ width: "260px" }} // Adjusted width for date column
                         >
-                          {item.date}
+                          {news.date}
                         </td>
                         {/* Edit Column */}
                         <td className="p-2 border text-center align-middle" style={{ width: "100px" }}>
                           <Link
-                            href={`/news/${item.id}/edit`}
+                            href={`/news/${news.id}/edit`}
                             className="text-blue-600 hover:underline"
                           >
                             <Image
@@ -223,7 +314,7 @@ const NewsPage = () => {
                         {/* Delete Column */}
                         <td className="p-2 border">
                           <button
-                            onClick={() => handleDeleteClick(item.id)}
+                            onClick={() => handleDeleteClick(parseInt(news.id, 10))}
                             className="text-red-600 ml-2"
                           >
                             Delete
