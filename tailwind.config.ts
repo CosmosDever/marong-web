@@ -12,6 +12,8 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        'body-border': 'rgb(186, 197, 237)',
+        'lightblue-bg':'#dee3f6',
       },
     },
   },

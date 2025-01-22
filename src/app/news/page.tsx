@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Sidebar from "../component/Sidebar";
-import Link from "next/link";
+import Sidebar from "../component/sidebar";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface News {
   id: number;
