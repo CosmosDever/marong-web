@@ -50,14 +50,43 @@ const CaseBox: React.FC = () => {
   const [token, setToken] = useState<string | null>(null);
   const [searchCases, setSearchCases] = useState<CaseData[] | null>(null);
   const [query, setQuery] = useState("");
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const filters = [
+    "Road Damage",
+    "Damaged Sidewalk",
+    "Damaged Cable",
+    "Damaged Overpass",
+  ];
+
+  // Toggle visibility of the filter dropdown
+  const toggleFilterVisibility = () => {
+    setIsFilterVisible((prev) => !prev);
+  };
+
+  const handleFilterChange = (filter: string) => {
+    if (selectedFilters.includes(filter)) {
+      setSelectedFilters((prev) => prev.filter((f) => f !== filter));
+    } else {
+      setSelectedFilters((prev) => [...prev, filter]);
+    }
+  };
 
   useEffect(() => {
     if (cases) {
-      Search(cases, query).then((results) => {
-        setSearchCases(results);
+      const filteredCases = cases.filter((item) => {
+        const matchesQuery = item.detail.toLowerCase().includes(query.toLowerCase());
+        const matchesCategory = selectedFilters.length
+          ? selectedFilters.includes(item.category)
+          : true;
+  
+        return matchesQuery && matchesCategory;
       });
+  
+      setSearchCases(filteredCases);
     }
-  }, [query, cases]);
+  }, [query, selectedFilters, cases]);
+  
 
   useEffect(() => {
     const loginAndFetchToken = async () => {
@@ -113,6 +142,7 @@ const CaseBox: React.FC = () => {
       <div className="h-full overflow-y-auto mt-[2vh] pb-[4vh]">
         <div className="w-full flex flex-col justify-center items-center ">
           {/* {cases?.map((item) => ( */}
+
           {searchCases?.map((item) => (
             <Link
               key={item.caseId}
@@ -166,8 +196,15 @@ const CaseBox: React.FC = () => {
           />
         </div>
         {/* filter btn */}
-        <FilterButton/>
-        
+        <FilterButton
+          isFilterVisible={isFilterVisible}
+          setIsFilterVisible={setIsFilterVisible}
+          selectedFilters={selectedFilters}
+          setSelectedFilters={setSelectedFilters}
+          filters={filters}
+          toggleFilterVisibility={toggleFilterVisibility}
+          handleFilterChange={handleFilterChange}
+        />
       </div>
     </>
   );

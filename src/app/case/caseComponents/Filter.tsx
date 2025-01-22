@@ -3,27 +3,26 @@
 import { useState } from "react";
 import Image from "next/image";
 
-const FilterButton: React.FC = () => {
-  const [isFilterVisible, setIsFilterVisible] = useState(false);
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+interface Filter {
+  isFilterVisible:boolean;
+  setIsFilterVisible:React.Dispatch<React.SetStateAction<boolean>>;
+  selectedFilters:string[];
+  setSelectedFilters:React.Dispatch<React.SetStateAction<string[]>>;
+  filters:string[];
+  toggleFilterVisibility: () => void;
+  handleFilterChange: (filter: string) => void;
+}
 
-  const filters = ["Option 1", "Option 2", "Option 3", "Option 4"]; // ตัวเลือกกรอง
-
-  // Toggle visibility of the filter dropdown
-  const toggleFilterVisibility = () => {
-    setIsFilterVisible((prev) => !prev);
-  };
-
-  // Handle filter selection
-  const handleFilterChange = (filter: string) => {
-    if (selectedFilters.includes(filter)) {
-      // Remove filter if already selected
-      setSelectedFilters((prev) => prev.filter((f) => f !== filter));
-    } else {
-      // Add filter if not already selected
-      setSelectedFilters((prev) => [...prev, filter]);
-    }
-  };
+const FilterButton: React.FC<Filter> = ({
+  isFilterVisible,
+  setIsFilterVisible,
+  selectedFilters,
+  setSelectedFilters,
+  filters,
+  toggleFilterVisibility,
+  handleFilterChange,
+}) => {
+  
 
   return (
     <div className="relative">
@@ -44,7 +43,7 @@ const FilterButton: React.FC = () => {
 
       {/* Dropdown */}
       {isFilterVisible && (
-        <div className="absolute mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg">
+        <div className="absolute right-[.2vw] mt-[1vh] w-[10vw] bg-white border border-gray-300 rounded shadow-lg">
           {filters.map((filter) => (
             <label
               key={filter}
@@ -62,13 +61,13 @@ const FilterButton: React.FC = () => {
 
           {/* Apply Button */}
           <button
-            className="block w-full px-4 py-2 text-center bg-blue-500 text-white hover:bg-blue-600 mt-2 rounded"
+            className="block w-full px-[1vw] py-[1vh] text-center bg-blue-600 text-white hover:bg-blue-800 active:bg-blue-950 mt-[1vh] rounded"
             onClick={() => {
-              console.log("Selected Filters:", selectedFilters); // Debugging
+              console.log("Selected Filters:", selectedFilters); 
               setIsFilterVisible(false);
             }}
           >
-            Apply Filters
+            Close
           </button>
         </div>
       )}

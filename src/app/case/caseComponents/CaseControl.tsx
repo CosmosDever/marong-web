@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import CancelPopup from "./CaseCancelPopup";
-import InProgressPopup from "./CaseInProgressPopup";
 import { NextResponse } from "next/server";
-import DonePopup from "./CaseDonePopup";
 import axios from "axios";
 import { useParams } from "next/navigation";
+import InProgressPopup from "./CaseInProgressPopup";
+import DonePopup from "./CaseDonePopup";
 
 export async function updateCancel(detailCancel: string, id: string) {
   if (!detailCancel) {
