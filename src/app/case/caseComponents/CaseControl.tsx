@@ -322,12 +322,13 @@ const CaseControl: React.FC = () => {
       <div className="z-10 w-[20vw] h-[12vh] fixed bottom-10 right-7 flex justify-evenly items-center bg-lightblue-bg rounded-xl">
         <button
           onClick={() => togglePopup("cancel")}
-          className="w-[8vw] border-black border-2 rounded-xl bg-red-500 text-white hover:bg-red-600 active:bg-red-800"
+          className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-red-500 text-white hover:bg-red-600 active:bg-red-800"
         >
           Cancel operation
         </button>
         {isInProgressBtnVisible && (
           <button
+            id="In progress btn"
             onClick={() => togglePopup("inProgress")}
             className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-800"
           >
