@@ -3,14 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import dotenv from "dotenv";
+dotenv.config();
 
-mapboxgl.accessToken = "pk.eyJ1IjoicHJhbTQ3IiwiYSI6ImNtNXRzMzdnZDEwZjkyaXEwbzU3Y2J2cnQifQ.3e4ZNgqhVduJkxgtzMCkUw";
+mapboxgl.accessToken = process.env.MAPBOX_TOKEN || "";
 
 interface MapViewProps {
   coordinates: [number, number];
 }
 
-const MapBox: React.FC<MapViewProps> = ({ coordinates}) => {
+const MapBox: React.FC<MapViewProps> = ({ coordinates }) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
@@ -34,23 +36,25 @@ const MapBox: React.FC<MapViewProps> = ({ coordinates}) => {
         .setLngLat(coordinates)
         .setPopup(popup)
         .addTo(mapRef.current!);
-    }, 500); 
+    }, 500);
 
     return () => {
       clearTimeout(timeout);
       markerRef.current?.remove();
       mapRef.current?.remove();
     };
-  }, [coordinates]); 
+  }, [coordinates]);
 
   useEffect(() => {
     if (isMapLoaded && markerRef.current) {
       markerRef.current.setLngLat(coordinates);
       markerRef.current.getPopup();
     }
-  }, [coordinates, isMapLoaded]); 
+  }, [coordinates, isMapLoaded]);
 
-  return <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />;
+  return (
+    <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
+  );
 };
 
 export default MapBox;
