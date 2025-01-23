@@ -10,8 +10,18 @@ export default function AdminProfile() {
   const params = useParams();
   const router = useRouter();
   const userId = Number(params?.id);
+    const [adminData, setadminData] = useState({
+      roles: "",
+      id: ""
+    });
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    fullName: string;
+    password: string;
+    confirmPassword: string;
+    role: string;
+    picture: string | File;
+  }>({
     fullName: "",
     password: "",
     confirmPassword: "",
@@ -23,63 +33,65 @@ export default function AdminProfile() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch(`http://localhost:8080/api/admin/${userId}`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch user data.");
+   useEffect(() => {
+      const fetchadminData = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No token found");
+          return;
         }
-
-        const data = await response.json();
-
-        setFormData({
-          fullName: data.fullName || "",
-          role: data.role || "",
-          picture: data.picture || "",
-          password: "",
-          confirmPassword: "",
-        });
-
-        setImagePreview(data.picture || null);
-      } catch (error: any) {
-        setError(error.message || "An unexpected error occurred.");
-      }
-    };
-
-    fetchUserData();
-  }, [userId]);
+    
+        try {
+          const response = await fetch(`http://localhost:8080/api/userdata/token/${token}`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
+          });
+    
+          if (!response.ok) {
+            console.error("Failed to fetch user data:", response.statusText);
+            return;
+          }
+    
+          const result = await response.json();
+    
+          if (result.statusCode === "200") {
+            const {roles, id } = result.data;
+          
+            const roleNameMatch = roles.match(/name=ROLE_(.+)\)/);
+            const roleName = roleNameMatch ? roleNameMatch[1] : "Unknown Role";
+          
+            setadminData({ roles: roleName, id });
+          } else {
+            console.error("Error in API response:", result.statusMessage);
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      };
+    
+      fetchadminData();
+    }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
     if (file && file.type.startsWith("image/")) {
       setImagePreview(URL.createObjectURL(file));
-
-      try {
-        setLoading(true);
-        const publicURL = await uploadImage(file);
-        setFormData((prev) => ({ ...prev, picture: publicURL }));
-      } catch (error) {
-        console.error(error);
-        setError("ไม่สามารถอัปโหลดรูปภาพได้ กรุณาลองอีกครั้ง");
-      } finally {
-        setLoading(false);
-      }
+      setFormData((prev) => ({ ...prev, picture: file }));
+      setError("");
     } else {
       setError("โปรดเลือกไฟล์รูปภาพที่ถูกต้อง");
     }
   };
+  
 
   const handleSave = async () => {
     const token = localStorage.getItem("token");
@@ -87,30 +99,39 @@ export default function AdminProfile() {
       setError("You are not authorized. Please log in.");
       return router.push("/login");
     }
-
+  
     setLoading(true);
     setError("");
-
+  
     if (formData.password !== formData.confirmPassword) {
       setError("Password and Confirm Password do not match.");
-      setLoading(false);
       return;
     }
-    
-
+  
     try {
-      const payload: Record<string, any> = {};
-      if (formData.fullName) payload.fullName = formData.fullName;
-      if (formData.password) payload.password = formData.password;
-      if (formData.role) payload.role = formData.role;
-
-      if (formData.picture) {
-        payload.picture = formData.picture;
-      } else if (imagePreview) {
-        payload.picture = imagePreview;
+      let imageUrl = "";
+      if (formData.picture instanceof File) {
+        try {
+          imageUrl = await uploadImage(formData.picture);
+        } catch (uploadError) {
+          setError("Failed to upload image. Please try again.");
+          setLoading(false);
+          return;
+        }
       }
+  
+      const payload: Record<string, any> = {
+        fullName: formData.fullName,
+        password: formData.password,
+        picture: imageUrl || "",
+      };
+  
+      if (adminData.roles === "master Admin" && formData.role) {
+        payload.role = formData.role;
+      }
+  
       console.log("Payload:", payload);
-
+  
       const response = await fetch(`http://localhost:8080/api/admin/${userId}/edit`, {
         method: "PATCH",
         headers: {
@@ -119,16 +140,13 @@ export default function AdminProfile() {
         },
         body: JSON.stringify(payload),
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to update admin profile.");
       }
-
-      const text = await response.text();
-      const data = text ? JSON.parse(text) : {};
-
+  
+      const data = await response.json();
       if (data.status === "success") {
-        console.log("Success:", data);
         router.back();
       } else {
         setError(data.message || "An error occurred while updating the profile.");
@@ -139,6 +157,7 @@ export default function AdminProfile() {
       setLoading(false);
     }
   };
+  
 
   const handleCancel = () => {
     router.back();
@@ -216,19 +235,23 @@ export default function AdminProfile() {
                   />
                 </div>
                 <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-2">Role</label>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full border border-gray-300 rounded-md px-4 py-2"
-                >
-                   <option value="">Select Role</option>
-                  <option value="master Admin">Master Admin</option>
-                  <option value="Admin">Admin</option>
-                </select>
-              </div>
+                  <label className="block text-gray-700 font-medium mb-2">Role</label>
+                  <select
+                    name="role"
+                    value={formData.role}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full border border-gray-300 rounded-md px-4 py-2"
+                    disabled={adminData.roles !== "master Admin"}
+                  >
+                    <option value="" disabled>Select Role</option>
+                    <option value="master Admin">Master Admin</option>
+                    <option value="Admin">Admin</option>
+                  </select>
+                  {adminData.roles !== "master Admin" && (
+                    <p className="text-gray-500 text-sm">Only Master Admin can update roles.</p>
+                  )}
+                </div>
               </div>
             </div>
             <div className="text-right space-x-4">

@@ -21,6 +21,10 @@ export default function AdminProfile() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+    const [adminData, setadminData] = useState({
+      roles: "",
+      id: ""
+    });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -50,6 +54,48 @@ export default function AdminProfile() {
 
     fetchUser();
   }, [userId]);
+
+    useEffect(() => {
+      const fetchadminData = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No token found");
+          return;
+        }
+    
+        try {
+          const response = await fetch(`http://localhost:8080/api/userdata/token/${token}`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
+          });
+    
+          if (!response.ok) {
+            console.error("Failed to fetch user data:", response.statusText);
+            return;
+          }
+    
+          const result = await response.json();
+    
+          if (result.statusCode === "200") {
+            const {roles, id } = result.data;
+          
+            const roleNameMatch = roles.match(/name=ROLE_(.+)\)/);
+            const roleName = roleNameMatch ? roleNameMatch[1] : "Unknown Role";
+          
+            setadminData({ roles: roleName, id });
+          } else {
+            console.error("Error in API response:", result.statusMessage);
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      };
+    
+      fetchadminData();
+    }, []);
 
   const handleCardClick = (id: number) => {
     router.push(`/admin/edit/${id}`);
@@ -144,12 +190,14 @@ export default function AdminProfile() {
               >
                 Back
               </button>
-              <button
-                onClick={() => handleCardClick(user.id)}
-                className="mt-10 py-2 px-6 text-sm text-white bg-blue-500 hover:bg-blue-700 rounded-lg"
-              >
-                Edit Profile
-              </button>
+              {adminData.roles === "master Admin" || Number(adminData.id) === user.id ? (
+                <button
+                  onClick={() => handleCardClick(user.id)}
+                  className="mt-10 py-2 px-6 text-sm text-white bg-blue-500 hover:bg-blue-700 rounded-lg"
+                >
+                  Edit Profile
+                </button>
+              ) : null}
             </div>
           </div>
         </div>
