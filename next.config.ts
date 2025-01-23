@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['storage.googleapis.com'],
+    domains: ['storage.googleapis.com', 'yoqhhfzgucuarcyskigr.supabase.co'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -12,12 +12,20 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'img.lovepik.com', // New hostname for the image
+        hostname: 'img.lovepik.com',
         port: '',
-        pathname: '/free-png/**', // Path pattern for your specific image
-        search: '',
+        pathname: '/free-png/**',
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*", // Path for the API requests on the frontend
+        destination: "http://localhost:8080/api/:path*", // Proxy to the backend API
+      },
+    ];
+  },
 };
+
 export default nextConfig;

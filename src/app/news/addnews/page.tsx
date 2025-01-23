@@ -1,6 +1,7 @@
 "use client";
 
 import { FC, useState, useEffect, useRef } from "react";
+import axios from "axios";
 import { useRouter } from "next/navigation";
 import Head from "next/head";
 import Image from "next/image";
@@ -9,8 +10,16 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import mapboxgl from "mapbox-gl";
 import { GoogleMap, useJsApiLoader, Autocomplete } from "@react-google-maps/api";
 import { uploadImage } from "../../component/imageUpload";
+const API_BASE_URL = "http://localhost:8080/api"; // Define your API base URL
+
+interface ApiResponse {
+  message: {
+    token: string[];
+  };
+}
 
 const AddNewsPage: FC = () => {
+  const [token, setToken] = useState<string | null>(null); // Define setToken
   const router = useRouter();
   const [markerCoordinates, setMarkerCoordinates] = useState<[number, number]>([0, 0]);
   const [showUploadPopup, setShowUploadPopup] = useState(false);
@@ -79,22 +88,6 @@ const AddNewsPage: FC = () => {
 
 
   
-  const handleSave = async () => {
-    try {
-      const response = await fetch("http://localhost:8080/api/News/addNews", {
-        method: "POST",
-        body: JSON.stringify(formData),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!response.ok) throw new Error("Failed to save news");
-
-      setNotification({ status: "success", message: "News saved successfully" });
-      setTimeout(() => router.push("/news"), 3000);
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
 
 
@@ -150,6 +143,51 @@ const AddNewsPage: FC = () => {
   };
   
 
+  const handleSave = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setNotification({ status: "error", message: "Authentication token is missing" });
+      return;
+    }
+  
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("content", formData.content);
+      formDataToSend.append("location_description", formData.location.description);
+      formDataToSend.append("latitude", markerCoordinates[0].toString());
+      formDataToSend.append("longitude", markerCoordinates[1].toString());
+      formDataToSend.append("type", "news"); 
+      formDataToSend.append("picture", formData.picture); // Assuming picture URL is in the state
+  
+      const response = await axios.post(`${API_BASE_URL}/News/addNews`, formDataToSend, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      setNotification({ status: "success", message: "News saved successfully" });
+      setTimeout(() => router.push("/news"), 3000);
+    } catch (error) {
+      const err = error as any;
+      console.error("Error:", err.response?.data || err.message);
+      setNotification({ status: "error", message: "Failed to save news" });
+    }
+  };
+  
+  
+  
+
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.type.startsWith("image/")) {
@@ -168,16 +206,6 @@ const AddNewsPage: FC = () => {
   };
 
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-
-
   return (
     <>
       <Head>
@@ -194,20 +222,22 @@ const AddNewsPage: FC = () => {
             <div className="mt-10 w-[86%] mx-auto">
               <div className="flex gap-4">
                 <div className="flex-1 -mr-10 relative" ref={imageRef}>
-                  <div className="relative" style={{ width: "70vh", height: "35vh" }}>
-                    <Image
-                    src={imagePreview || "/default-image.jpg"}  // Fallback to a default image if no preview
-                    alt="Uploaded Preview"
-                    fill
-                    className="rounded-lg object-cover"
-                    />
+                    <div className="relative" style={{ width: "70vh", height: "35vh" }}>
+                    {imagePreview && (
+                      <Image
+                      src={imagePreview}
+                      alt="Uploaded Preview"
+                      fill
+                      className="rounded-lg object-cover"
+                      />
+                    )}
                     <div
                       onClick={handleImageClick}
                       className="absolute top-0 left-0 w-full h-full bg-black opacity-40 text-white flex items-center justify-center text-xl rounded-lg hover:opacity-70 transition-opacity duration-300 cursor-pointer z-10"
                     >
                       <span className="pointer-events-none">Upload New Picture</span>
                     </div>
-                  </div>
+                    </div>
                 </div>
 
                 <div

@@ -8,7 +8,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { useMemo } from 'react';
 
 interface Location {
-  coordinates: [string, string]; // Coordinates are now an array of two strings
+  coordinates: [number, number]; // Coordinates are now an array of two numbers
   description: string; // Description of the location (e.g., street name)
 }
 
@@ -17,6 +17,10 @@ interface CaseDetails {
   category: string;
   location: Location; // Updated to include location details
   status: string;
+  date_opened: string;
+  date_closed: string;
+  picture: string;
+  picture_done: string;
 }
 
 interface AllCaseData {
@@ -45,6 +49,10 @@ interface RoadCaseDetails {
   category: string;
   location: RoadLocation; // Updated to include location details
   status: string;
+  date_opened: string;
+  date_closed: string;
+  picture: string;
+  picture_done: string;
 }
 
 interface RoadAllCaseData {
@@ -73,6 +81,10 @@ interface WireCaseDetails {
   category: string;
   location: WireLocation;
   status: string;
+  date_opened: string;
+  date_closed: string;
+  picture: string;
+  picture_done: string;
 }
 
 interface WireAllCaseData {
@@ -101,6 +113,10 @@ interface PavementCaseDetails {
   category: string;
   location: PavementLocation;
   status: string;
+  date_opened: string;
+  date_closed: string;
+  picture: string;
+  picture_done: string;
 }
 
 interface PavementAllCaseData {
@@ -130,6 +146,10 @@ interface OverpassCaseDetails {
   category: string;
   location: OverpassLocation;
   status: string;
+  date_opened: string;
+  date_closed: string;
+  picture: string;
+  picture_done: string;
 }
 
 interface OverpassAllCaseData {
@@ -161,7 +181,6 @@ const OverviewPage: FC = (): JSX.Element => {
   const [filters, setFilters] = useState({ showWaiting: true, showInProgress: true, showDone: true });
 
   const [mapData, setMapData] = useState<any[]>([]);
-  const stableMapData = useMemo(() => mapData, [mapData]);
 
   // All Case Data State
   const [allCaseData, setAllCaseData] = useState<AllCaseData | null>(null);
@@ -232,6 +251,10 @@ const OverviewPage: FC = (): JSX.Element => {
                 description: caseItem.location.description,
               },
               // status: caseItem.status,
+              date_opened:caseItem.date_opened,
+              date_closed:caseItem.date_closed,
+              picture:"https://storage.googleapis.com/traffy_public_bucket/attachment/2025-01/bd45d5852da765ff1eca999881e1a5eb7289313f.jpg",
+              picture_done:caseItem.picture_done,
               status: "Waiting",
             })),
           };
@@ -288,6 +311,10 @@ const OverviewPage: FC = (): JSX.Element => {
                 description: caseItem.location.description,
               },
               // status: caseItem.status,
+              date_opened:caseItem.date_opened,
+              date_closed:caseItem.date_closed,
+              picture:caseItem.picture,
+              picture_done:caseItem.picture_done,
               status: "Waiting",              
             })),
           };
@@ -348,6 +375,10 @@ const OverviewPage: FC = (): JSX.Element => {
                 coordinates: [100.3171, 13.7367], // Example hardcoded coordinates
                 description: caseItem.location.description,
               },
+              date_opened:caseItem.date_opened,
+              date_closed:caseItem.date_closed,
+              picture:caseItem.picture,
+              picture_done:caseItem.picture_done,
               status: caseItem.status,
             })),
           };
@@ -409,6 +440,10 @@ const OverviewPage: FC = (): JSX.Element => {
                 description: caseItem.location.description,
               },
               // status: caseItem.status,
+              date_opened:caseItem.date_opened,
+              date_closed:caseItem.date_closed,
+              picture:caseItem.picture,
+              picture_done:caseItem.picture_done,
               status: "Done",
             })),
           };
@@ -469,6 +504,10 @@ const OverviewPage: FC = (): JSX.Element => {
                 coordinates: [100.6171, 13.7367], // Example hardcoded coordinates
                 description: caseItem.location.description,
               },
+              date_opened:caseItem.date_opened,
+              date_closed:caseItem.date_closed,
+              picture:caseItem.picture,
+              picture_done:caseItem.picture_done,
               status: caseItem.status,
             })),
           };
@@ -550,20 +589,16 @@ const OverviewPage: FC = (): JSX.Element => {
       console.log("Filtered by category:", filteredData);
     }
   
-    // Further filter by status
+    // Filter by status independently
     filteredData = filteredData.filter((item) => {
-      const statusMatch =
+      return (
         (item.status === "Waiting" && currentFilters.showWaiting) ||
         (item.status === "In Progress" && currentFilters.showInProgress) ||
-        (item.status === "Done" && currentFilters.showDone);
-  
-      return statusMatch;
+        (item.status === "Done" && currentFilters.showDone)
+      );
     });
-
-    
   
     console.log("Filtered by status:", currentFilters, filteredData);
-    
   
     // Add markers for filtered data
     filteredData.forEach((item) => {
@@ -573,16 +608,15 @@ const OverviewPage: FC = (): JSX.Element => {
       }
   
       const markerColor = categoryColors[item.category] || "gray";
+            // const marker = document.createElement("div");
+      // marker.className = "marker";
+      // marker.style.width = "20px";
+      // marker.style.height = "20px";
+      // marker.style.backgroundColor = markerColor;
+      // marker.style.borderRadius = "50%";
+      // marker.style.cursor = "pointer";
   
-      const marker = document.createElement("div");
-      marker.className = "marker";
-      marker.style.width = "20px";
-      marker.style.height = "20px";
-      marker.style.backgroundColor = markerColor;
-      marker.style.borderRadius = "50%";
-      marker.style.cursor = "pointer";
-  
-      new mapboxgl.Marker(marker)
+      const marker = new mapboxgl.Marker({ color: markerColor }) // Set marker color here
         .setLngLat(item.location.coordinates)
         .addTo(map)
         .getElement()
@@ -607,19 +641,6 @@ const OverviewPage: FC = (): JSX.Element => {
   
 
   
-  const filteredCases = mapData.filter((caseItem: CaseDetails) => {
-    // Apply status filter
-    const matchesStatus =
-      (filters.showWaiting && caseItem.status === "Waiting") ||
-      (filters.showInProgress && caseItem.status === "In Progress") ||
-      (filters.showDone && caseItem.status === "Done");
-  
-    // Apply category filter
-    const matchesCategory =
-      selectedCase === "All Case" || caseItem.category === selectedCase;
-  
-    return matchesStatus && matchesCategory;
-  });
   
 
   
@@ -742,7 +763,7 @@ const OverviewPage: FC = (): JSX.Element => {
                 <div className="flex flex-col items-center w-[30%] border-r-2 border-gray-300 -mt-3">
                   <span className="text-xl font-semibold">Waiting</span>
                   <span className="text-lg text-gray-700">{allCaseData?.waiting_all_cases}</span>
-                  <label className="flex items-center mt-0">
+                  {/* <label className="flex items-center mt-0">
                     <input
                       type="checkbox"
                       checked={filters.showWaiting}
@@ -750,12 +771,12 @@ const OverviewPage: FC = (): JSX.Element => {
                       className="mr-2"
                     />
                     Show Waiting
-                  </label>
+                  </label> */}
                 </div>
                 <div className="flex flex-col items-center w-[30%] border-r-2 border-gray-300 -mt-3">
                   <span className="text-xl font-semibold">In Progress</span>
                   <span className="text-lg text-gray-700">{allCaseData?.inprogress_all_cases}</span>
-                  <label className="flex items-center mt-0">
+                  {/* <label className="flex items-center mt-0">
                     <input
                       type="checkbox"
                       checked={filters.showInProgress}
@@ -763,12 +784,12 @@ const OverviewPage: FC = (): JSX.Element => {
                       className="mr-2"
                     />
                     Show In Progress
-                  </label>
+                  </label> */}
                 </div>
                 <div className="flex flex-col items-center w-[30%] -mt-3">
                   <span className="text-xl font-semibold">Done</span>
                   <span className="text-lg text-gray-700">{allCaseData?.done_all_case}</span>
-                  <label className="flex items-center mt-0">
+                  {/* <label className="flex items-center mt-0">
                     <input
                       type="checkbox"
                       checked={filters.showDone}
@@ -776,7 +797,7 @@ const OverviewPage: FC = (): JSX.Element => {
                       className="mr-2"
                     />
                     Show Done
-                  </label>
+                  </label> */}
                 </div>
                 {/* <div className="flex flex-col items-center w-[30%] border-r-2 border-gray-300">
                   <span className="text-xl font-semibold">In Progress</span>
@@ -804,8 +825,8 @@ const OverviewPage: FC = (): JSX.Element => {
         <p><strong>Location:</strong> {selectedCaseDetails.location.description}</p>
         <p><strong>Details:</strong> {selectedCaseDetails.detail}</p>
         <p><strong>Status:</strong> {selectedCaseDetails.status}</p>
-        <p><strong>Opened On:</strong> {selectedCaseDetails?.date_opened ? selectedCaseDetails.date_opened.toLocaleDateString() : "N/A"}</p>
-        <p><strong>Closed On:</strong> {selectedCaseDetails?.date_closed ? selectedCaseDetails.date_closed.toLocaleDateString() : "N/A"}</p>
+        <p><strong>Opened On:</strong> {selectedCaseDetails?.date_opened ? new Date(selectedCaseDetails.date_opened).toLocaleDateString() : "N/A"}</p>
+        <p><strong>Closed On:</strong> {selectedCaseDetails?.date_closed ? new Date(selectedCaseDetails.date_closed).toLocaleDateString() : "N/A"}</p>
       </div>
 
       {/* Image layout logic */}

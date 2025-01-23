@@ -36,10 +36,14 @@ interface NewsApiResponse {
 const NewsPage = () => {
 
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
+  const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [formData, setFormData] = useState<any>({});
   const [notification, setNotification] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+
+
   const router = useRouter();
 
 
@@ -176,7 +180,49 @@ const NewsPage = () => {
   };
 
 
-  const handleDeleteClick = (rowId: number) => {
+  const handleDelete = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("You are not authorized. Please log in.");
+      return router.push("/login");
+    }
+  
+    if (!selectedRowId) {
+      setError("No row selected for deletion.");
+      return;
+    }
+  
+    setLoading(true);
+    setError("");
+  
+    try {
+      const response = await fetch(`http://localhost:8080/api/News/${selectedRowId}/Delete`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete the news item.");
+      }
+  
+      setNotification({ message: "News item deleted successfully" });
+      setIsPopupVisible(false);
+  
+      // Refresh the news list
+      await refreshNewsList();
+    } catch (error: any) {
+      setError(error.message || "An unexpected error occurred while deleting the news item.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
+  const handleDeleteClick = (rowId: string) => {
     setSelectedRowId(rowId);
     setIsPopupVisible(true);
   };
@@ -187,10 +233,44 @@ const NewsPage = () => {
   };
 
   const handleConfirm = () => {
-    setNews((prevNews: NewsDetails[]) => prevNews.filter((item: NewsDetails) => item.id !== selectedRowId?.toString()));
-    setIsPopupVisible(false);
-    setSelectedRowId(null);
+    if (selectedRowId !== null) {
+      handleDelete();
+    }
   };
+
+
+
+
+  const refreshNewsList = async () => {
+    setNewsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:8080/api/News/all", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+  
+      const data: NewsApiResponse = await response.json();
+      if (data.statusCode === "200") {
+        setNewsData(data.data);
+      } else {
+        throw new Error(data.statusMessage || "Failed to refresh news data.");
+      }
+    } catch (error: any) {
+      setNewsError(error.message);
+    } finally {
+      setNewsLoading(false);
+    }
+  };
+
+
 
   return (
     <>
@@ -269,12 +349,12 @@ const NewsPage = () => {
                           style={{ width: "200px", height: "120px" }}
                         >
                           <Image
-                            src="/newsimage.png" // Static image path
-                            alt="news image"
-                            width={150}
-                            height={100}
-                            className="rounded-lg"
-                            style={{ objectFit: "cover" }}
+                          src={news.picture || "/placeholder-image.png"}
+                          alt="news image"
+                          width={150}
+                          height={120} // Adjusted height to fit the row height
+                          className="rounded-lg"
+                          style={{ objectFit: "cover", height: "100%" }} // Ensure the image fits the row height
                           />
                         </td>
                         {/* Dynamic Data */}
@@ -314,7 +394,7 @@ const NewsPage = () => {
                         {/* Delete Column */}
                         <td className="p-2 border">
                           <button
-                            onClick={() => handleDeleteClick(parseInt(news.id, 10))}
+                            onClick={() => handleDeleteClick(news.id)}
                             className="text-red-600 ml-2"
                           >
                             Delete

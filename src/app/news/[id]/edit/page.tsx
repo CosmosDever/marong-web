@@ -11,6 +11,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import mapboxgl from "mapbox-gl";
 import { GoogleMap, useJsApiLoader, Autocomplete } from "@react-google-maps/api";
 import { uploadImage } from "../../../component/imageUpload";
+import axios from "axios";
 
 
 interface NewsLocation {
@@ -57,7 +58,15 @@ const EditNewsPage: FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string;
+    location: {
+      coordinates: [number, number];
+      description: string;
+    };
+    content: string;
+    picture: string | File;
+  }>({
     title: "",
     location: {
       coordinates: [0, 0], // Default coordinates
@@ -99,12 +108,12 @@ const EditNewsPage: FC = () => {
         const formattedNews = {
           id: data.data.id,
           // picture: data.data.picture,
-          picture: "/newsimage.png",
+          picture: data.data.picture,
           title: data.data.title,
           date: data.data.date,
           type: data.data.type,
           location: {
-            coordinates: ["100.5171", "13.7367"] as [string, string], // Hardcoded for testing
+            coordinates: data.data.location.coordinates, 
             description: data.data.location.description,
           },
           content: data.data.content,
@@ -130,7 +139,7 @@ const EditNewsPage: FC = () => {
         setTitle(fetchedData.title);
         setDescription(fetchedData.location.description);
         setContent(fetchedData.content);
-        setMarkerCoordinates([parseFloat(fetchedData.location.coordinates[0]), parseFloat(fetchedData.location.coordinates[1])]);
+        setMarkerCoordinates([parseFloat(fetchedData.location.coordinates[1]), parseFloat(fetchedData.location.coordinates[0])]);
       }
       setLoading(false); // Stop loading after fetch
     };
@@ -183,7 +192,7 @@ const EditNewsPage: FC = () => {
   
         marker.on("dragend", () => {
           const lngLat = marker.getLngLat();
-          setMarkerCoordinates([lngLat.lng, lngLat.lat]);
+          setMarkerCoordinates([lngLat.lat, lngLat.lng]);
         });
   
         return () => map.remove();
@@ -233,55 +242,122 @@ const EditNewsPage: FC = () => {
   
   
   
+  // const handleSave = async () => {
+  //   const token = localStorage.getItem("token");
+  //   console.log(token);
+  //   if (!token) {
+  //     setError("You are not authorized. Please log in.");
+  //     return router.push("/login");
+  //   }
+  
+  //   setLoading(true);
+  //   setError("");
+  
+  //   try {
+  //     let imageUrl = "";
+  //     if (formData.picture instanceof File) {
+  //       try {
+  //         imageUrl = await uploadImage(formData.picture);
+  //       } catch (uploadError) {
+  //         setError("Failed to upload image. Please try again.");
+  //         setLoading(false);
+  //         return;
+  //       }
+  //     }
+  //     const payload = {
+  //       title,
+  //       content,
+  //       location_description: formData.location.description,
+  //       latitude: String(markerCoordinates[0]),
+  //       longitude: String(markerCoordinates[1]),
+  //       picture: formData.picture || newsData.picture,
+  //     };
+  
+  //     const response = await fetch(`http://localhost:8080/api/News/${id}/Edit`, {
+  //       method: "PATCH",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       body: JSON.stringify(payload),
+  //     });
+  
+  //     if (!response.ok) {
+  //       const errorData = await response.json();
+  //       throw new Error(errorData.message || "Failed to update news.");
+  //     }
+  
+  //     const data = await response.json();
+  
+  //     if (data.statusCode === "200") {
+  //       setNotification({ message: "News updated successfully", data });
+  //       router.push(`/news/${id}/Edit`);
+  //     } else {
+  //       setError(data.statusMessage || "An error occurred while updating the news.");
+  //     }
+  //   } catch (error: any) {
+  //     setError(error.message || "An unexpected error occurred.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  const handleSave = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("You are not authorized. Please log in.");
-      return router.push("/login");
+
+const API_BASE_URL = "http://localhost:8080/api"; // Define your API base URL
+
+const handleSave = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    setNotification({ status: "error", message: "Authentication token is missing" });
+    return;
+  }
+
+  setLoading(true);
+  setError("");
+
+  try {
+
+    const formDataToSend = new FormData();
+    formDataToSend.append("title", formData.title);
+    formDataToSend.append("content", formData.content);
+    formDataToSend.append("location_description", formData.location.description);
+    formDataToSend.append("latitude", markerCoordinates[0].toString());
+    formDataToSend.append("longitude", markerCoordinates[1].toString());
+    formDataToSend.append("type", "news");
+    formDataToSend.append("picture", formData.picture); // Assuming picture URL is in the state
+ 
+
+    const response = await axios.patch(`/api/News/${id}/Edit`, formDataToSend, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.status !== 200) {
+      const errorData = response.data;
+      console.error("Error Data:", errorData); // Log the error response body
+      throw new Error(errorData.message || "Failed to update news.");
     }
 
-    setLoading(true);
-    setError("");
+    const data = response.data;
 
-    try {
-      const payload: Record<string, any> = {
-        title,
-        content,
-        location: {
-          description,
-          coordinates: markerCoordinates.map(String) as [string, string],
-        },
-        picture: formData.picture || newsData.picture,
-      };
-
-      const response = await fetch(`http://localhost:8080/api/News/${id}/edit`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update news.");
-      }
-
-      const data = await response.json();
-
-      if (data.statusCode === "200") {
-        setNotification({ message: "News updated successfully", data });
-        router.push(`/news/${id}/edit`);
-      } else {
-        setError(data.statusMessage || "An error occurred while updating the news.");
-      }
-    } catch (error: any) {
-      setError(error.message || "An unexpected error occurred.");
-    } finally {
-      setLoading(false);
+    if (data.statusCode === "200") {
+      setNotification({ message: "News updated successfully" });
+      setTimeout(() => {
+        router.push(`/news`);
+      }, 1000);
+    } else {
+      setError(data.statusMessage || "An error occurred while updating the news.");
     }
-  };
+  } catch (error: any) {
+    setError(error.message || "An unexpected error occurred.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
 
   const handleCancel = () => {
     if (newsData) {
@@ -289,7 +365,7 @@ const EditNewsPage: FC = () => {
       setFormData({
         title: newsData.title || "",
         location: {
-          coordinates: [...newsData.location.coordinates],
+          coordinates: [parseFloat(newsData.location.coordinates[0]), parseFloat(newsData.location.coordinates[1])],
           description: newsData.location.description || "",
         },
         content: newsData.content || "",
@@ -300,9 +376,10 @@ const EditNewsPage: FC = () => {
       setTitle(newsData.title);
       setDescription(newsData.location.description);
       setContent(newsData.content);
+      setImagePreview(newsData.picture || ""); // Reset image preview
       setMarkerCoordinates([
-        parseFloat(newsData.location.coordinates[0]),
         parseFloat(newsData.location.coordinates[1]),
+        parseFloat(newsData.location.coordinates[0]),
       ]);
     }
   };
@@ -314,9 +391,10 @@ const EditNewsPage: FC = () => {
 
   const handleUploadClose = () => {
     setShowUploadPopup(false);
-    setImagePreview(null); // Clear the image preview when closing the upload popup
+    // if (!formData.picture || typeof formData.picture === "string") {
+    //   setImagePreview(null); // Only reset if no new image is selected
+    // }
   };
-
 
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -359,6 +437,7 @@ const EditNewsPage: FC = () => {
       });
     }
   }, [newsData]);
+  
 
 
   if (loading) {
@@ -386,13 +465,12 @@ const EditNewsPage: FC = () => {
               <div className="flex gap-4">
                 <div className="flex-1 -mr-10 relative" ref={imageRef}>
                   <div className="relative" style={{ width: "70vh", height: "35vh" }}>
-                    <Image
-                      // src={newsData.picture}
-                        src={imagePreview || newsData.picture || "/newsimage.png"}    // src="/newsimage.png"
-                      alt="news image"
-                      fill
-                      className="rounded-lg object-cover"
-                    />
+                  <Image
+                    src={imagePreview || newsData.picture || "/newsimage.png"}
+                    alt="news image"
+                    fill
+                    className="rounded-lg object-cover"
+                  />
                     <div
                       onClick={handleImageClick}
                       className="absolute top-0 left-0 w-full h-full bg-black opacity-40 text-white flex items-center justify-center text-xl rounded-lg hover:opacity-70 transition-opacity duration-300 cursor-pointer z-10"
