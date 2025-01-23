@@ -55,8 +55,8 @@ const CaseBox: React.FC = () => {
   const filters = [
     "Road Damage",
     "Damaged Sidewalk",
-    "Damaged Cable",
-    "Damaged Overpass",
+    "Overpass Damage",
+    "Wire Damage",
   ];
 
   // Toggle visibility of the filter dropdown
@@ -75,18 +75,19 @@ const CaseBox: React.FC = () => {
   useEffect(() => {
     if (cases) {
       const filteredCases = cases.filter((item) => {
-        const matchesQuery = item.detail.toLowerCase().includes(query.toLowerCase());
+        const matchesQuery = item.detail
+          .toLowerCase()
+          .includes(query.toLowerCase());
         const matchesCategory = selectedFilters.length
           ? selectedFilters.includes(item.category)
           : true;
-  
+
         return matchesQuery && matchesCategory;
       });
-  
+
       setSearchCases(filteredCases);
     }
   }, [query, selectedFilters, cases]);
-  
 
   useEffect(() => {
     const loginAndFetchToken = async () => {
