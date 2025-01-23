@@ -57,7 +57,7 @@ const Sidebar: FC = () => {
   
     fetchUser();
   }, []);
-  
+
   const handleCardClick = () => {
     router.push(`/admin/adminprofile/${userData.id}`);
   };
@@ -125,7 +125,7 @@ const Sidebar: FC = () => {
           <div className="flex flex-col justify-end w-full p-4 mb-[2vh]" >
             <div className="flex items-center" onClick={() => handleCardClick()}>
               <img
-                src={userData.picture || "/adminpfp.png"}
+                src={userData.picture}
                 alt="admin profile picture"
                 width={40}
                 height={40}
