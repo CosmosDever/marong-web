@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import logo from "../assets/logo.png";
@@ -8,6 +8,9 @@ export default function LoginPage() {
     const [gmail, setGmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [errorMessage, setErrorMessage] = useState<string>("");
+    const [adminData, setadminData] = useState({
+        roles: ""
+      });
     const router = useRouter();
 
     const setToken = (token: string): void => {
@@ -24,7 +27,7 @@ export default function LoginPage() {
     const handleSubmit = async (e: React.FormEvent): Promise<void> => {
         e.preventDefault();
         setErrorMessage("");
-
+    
         try {
             const response = await fetch("http://localhost:8080/api/auth/login", {
                 method: "POST",
@@ -33,7 +36,7 @@ export default function LoginPage() {
                 },
                 body: JSON.stringify({ gmail, password }),
             });
-
+    
             if (!response.ok) {
                 if (response.status === 401) {
                     throw new Error("Unauthorized: Invalid credentials");
@@ -41,13 +44,40 @@ export default function LoginPage() {
                     throw new Error("An error occurred while logging in.");
                 }
             }
-
+    
             const data = await response.json();
-
+    
             const token = extractToken(data);
             if (token) {
                 setToken(token);
-                router.push("/overview");
+    
+                const userResponse = await fetch(`http://localhost:8080/api/userdata/token/${token}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
+                    },
+                });
+    
+                if (!userResponse.ok) {
+                    throw new Error("Failed to fetch user roles");
+                }
+    
+                const userData = await userResponse.json();
+    
+                if (userData.statusCode === "200") {
+                    const { roles } = userData.data;
+                    const roleNameMatch = roles.match(/name=ROLE_(.+)\)/);
+                    const roleName = roleNameMatch ? roleNameMatch[1] : "Unknown Role";
+    
+                    if (roleName === "User") {
+                        setErrorMessage("คุณไม่มีสิทธิ์เข้าใช้งานระบบ");
+                        return;
+                    }
+                    router.push("/overview");
+                } else {
+                    throw new Error("Error fetching roles");
+                }
             } else {
                 throw new Error("Unexpected API response structure");
             }
@@ -55,12 +85,13 @@ export default function LoginPage() {
             setErrorMessage(error.message || "An error occurred. Please try again.");
         }
     };
-
+    
+    
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-800">
             <div className="w-96 p-6 bg-gray-100 shadow-lg rounded-lg">
                 <div className="flex justify-center">
-                    <Image src={logo} alt="logo" width={100} height={100} />
+                    <Image src={logo} alt="logo" width={240} />
                 </div>
                 <h1 className="text-2xl font-bold text-black text-center mb-4">Login</h1>
                 {errorMessage && <p className="text-red-500 text-center mb-4">{errorMessage}</p>}
