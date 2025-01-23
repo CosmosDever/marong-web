@@ -247,8 +247,7 @@ const OverviewPage: FC = (): JSX.Element => {
               case_id: caseItem.case_id,
               category: caseItem.category,
               location: {
-                coordinates: [100.5171, 13.7367], // Hardcoded for testing
-                // coordinates: caseItem.location.coordinates,
+                coordinates: caseItem.location.coordinates, // Hardcoded for testing
                 description: caseItem.location.description,
               },
               // status: caseItem.status,
