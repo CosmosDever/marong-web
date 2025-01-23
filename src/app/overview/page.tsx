@@ -253,7 +253,7 @@ const OverviewPage: FC = (): JSX.Element => {
               // status: caseItem.status,
               date_opened:caseItem.date_opened,
               date_closed:caseItem.date_closed,
-              picture:"https://storage.googleapis.com/traffy_public_bucket/attachment/2025-01/bd45d5852da765ff1eca999881e1a5eb7289313f.jpg",
+              picture:caseItem.picture,
               picture_done:caseItem.picture_done,
               status: "Waiting",
             })),
@@ -307,7 +307,7 @@ const OverviewPage: FC = (): JSX.Element => {
               category: caseItem.category,
               location: {
                 // Hardcoded coordinates as numbers
-                coordinates: [100.4171, 13.7367],
+                coordinates: caseItem.location.coordinates,
                 description: caseItem.location.description,
               },
               // status: caseItem.status,
@@ -372,7 +372,7 @@ const OverviewPage: FC = (): JSX.Element => {
               case_id: caseItem.case_id,
               category: caseItem.category,
               location: {
-                coordinates: [100.3171, 13.7367], // Example hardcoded coordinates
+                coordinates: caseItem.location.coordinates, // Example hardcoded coordinates
                 description: caseItem.location.description,
               },
               date_opened:caseItem.date_opened,
@@ -436,7 +436,7 @@ const OverviewPage: FC = (): JSX.Element => {
               case_id: caseItem.case_id,
               category: caseItem.category,
               location: {
-                coordinates: [100.3171, 13.7367], // Example hardcoded coordinates
+                coordinates: caseItem.location.coordinates, // Example hardcoded coordinates
                 description: caseItem.location.description,
               },
               // status: caseItem.status,
@@ -501,7 +501,7 @@ const OverviewPage: FC = (): JSX.Element => {
               case_id: caseItem.case_id,
               category: caseItem.category,
               location: {
-                coordinates: [100.6171, 13.7367], // Example hardcoded coordinates
+                coordinates: caseItem.location.coordinates, // Example hardcoded coordinates
                 description: caseItem.location.description,
               },
               date_opened:caseItem.date_opened,
@@ -578,26 +578,51 @@ const OverviewPage: FC = (): JSX.Element => {
     const categoryColors: Record<string, string> = {
       "Road Damage": "red",
       "Damaged Sidewalk": "green",
-      "Wire Issues": "blue",
-      "Overpass Issues": "yellow",
+      "Wire Damage": "blue",
+      "Overpass Damage": "yellow",
     };
   
     // Filter by category if necessary
+    // let filteredData = mapData;
+    // if (filter !== "All Case") {
+    //   filteredData = filteredData.filter((item) => item.category === filter);
+    //   console.log("Filtered by category:", filteredData);
+    // }
+  
+    // // Filter by status independently
+    // filteredData = filteredData.filter((item) => {
+    //   return (
+    //     (item.status === "Waiting" && currentFilters.showWaiting) ||
+    //     (item.status === "In Progress" && currentFilters.showInProgress) ||
+    //     (item.status === "Done" && currentFilters.showDone)
+    //   );
+    // });
+  
+
     let filteredData = mapData;
+
     if (filter !== "All Case") {
-      filteredData = filteredData.filter((item) => item.category === filter);
-      console.log("Filtered by category:", filteredData);
+      switch (filter) {
+        case "Street":
+          filteredData = mapData.filter((item) => item.category === "Road Damage");
+          break;
+        case "Wire":
+          filteredData = mapData.filter((item) => item.category === "Wire Damage");
+          break;
+        case "Pavement":
+          filteredData = mapData.filter((item) => item.category === "Damaged Sidewalk");
+          break;
+        case "Overpass":
+          filteredData = mapData.filter((item) => item.category === "Overpass Damage");
+          break;
+        default:
+          console.warn("Unknown filter category:", filter);
+      }
     }
-  
-    // Filter by status independently
-    filteredData = filteredData.filter((item) => {
-      return (
-        (item.status === "Waiting" && currentFilters.showWaiting) ||
-        (item.status === "In Progress" && currentFilters.showInProgress) ||
-        (item.status === "Done" && currentFilters.showDone)
-      );
-    });
-  
+    
+    console.log("Filtered Data:", filteredData);
+
+
     console.log("Filtered by status:", currentFilters, filteredData);
   
     // Add markers for filtered data
