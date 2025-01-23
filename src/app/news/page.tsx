@@ -348,7 +348,7 @@ const NewsPage = () => {
                           className="p-2 border pl-[3%] w-60 h-120"
                           style={{ width: "200px", height: "120px" }}
                         >
-                          <Image
+                          <img
                           src={news.picture || "/placeholder-image.png"}
                           alt="news image"
                           width={150}

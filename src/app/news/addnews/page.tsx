@@ -54,13 +54,15 @@ const AddNewsPage: FC = () => {
   });
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
+    // googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
+    googleMapsApiKey:"AIzaSyCrrohIKFYapXv-xhk9swyHjk6RwT0EpIA",
     libraries: ["places"],
   });
 
   useEffect(() => {
     if (mapContainerRef.current) {
-      mapboxgl.accessToken = process.env.MAPBOX_TOKEN || "";
+      // mapboxgl.accessToken = process.env.MAPBOX_TOKEN || "";
+      mapboxgl.accessToken = "pk.eyJ1IjoicHJhbTQ3IiwiYSI6ImNtNXRzMzdnZDEwZjkyaXEwbzU3Y2J2cnQifQ.3e4ZNgqhVduJkxgtzMCkUw";
 
       const map = new mapboxgl.Map({
         container: mapContainerRef.current,
@@ -235,10 +237,10 @@ const AddNewsPage: FC = () => {
                     style={{ width: "70vh", height: "35vh" }}
                   >
                     {imagePreview && (
-                      <Image
+                      <img
                         src={imagePreview}
                         alt="Uploaded Preview"
-                        fill
+                        // fill
                         className="rounded-lg object-cover"
                       />
                     )}
