@@ -53,34 +53,18 @@ const CaseById: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loginAndFetchToken = async () => {
-      try {
-        const response = await axios.post<ApiResponse>(`${API_BASE_URL}/auth/login`, {
-          gmail: "msaidmin@gmail.com",
-          password: "hashed_password_2",
-        });
-  
-        const authToken = response.data.message.token[0];
-        localStorage.setItem("token", authToken);
-        setToken(authToken); 
-      } catch (error) {
-        console.error("Login failed:", error);
-        setError("Login failed. Please check credentials and try again.");
-      }
-    };
-  
-    loginAndFetchToken(); 
-  }, []); 
-
-  useEffect(() => {
+  useEffect(( ) => {
+    const token = localStorage.getItem("token")
     const fetchCases = async () => {
-      if (!token) return; 
+      if (!token) return;
       try {
-        const response = await axios.get<{ data: CaseData }>(`${API_BASE_URL}/case/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-  
+        const response = await axios.get<{ data: CaseData }>(
+          `${API_BASE_URL}/case/${id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
         setCases([response.data.data]);
       } catch (err) {
         setError("Failed to fetch cases. Ensure token is valid.");
@@ -88,9 +72,9 @@ const CaseById: React.FC = () => {
         setLoading(false);
       }
     };
-  
+
     fetchCases();
-  }, [id,token]);
+  }, [id, token]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
@@ -125,12 +109,14 @@ const CaseById: React.FC = () => {
                 width={400}
                 height={400}
               />
-              <img
-                src={cases?.[0]?.picture_done}
-                alt="Case2 pic"
-                width={400}
-                height={400}
-              />
+              {cases?.[0]?.picture_done && (
+                <img
+                  src={cases?.[0]?.picture_done}
+                  alt=""
+                  width={400}
+                  height={400}
+                />
+              )}
             </div>
 
             {/* Damage value */}
@@ -153,7 +139,6 @@ const CaseById: React.FC = () => {
                       // MOCK
                       parseFloat(cases?.[0]?.location.coordinates[1] || "0"),
                       parseFloat(cases?.[0]?.location.coordinates[0] || "0"),
-                      
                     ]}
                   />
                 </div>

@@ -90,29 +90,7 @@ const CaseBox: React.FC = () => {
   }, [query, selectedFilters, cases]);
 
   useEffect(() => {
-    const loginAndFetchToken = async () => {
-      try {
-        const response = await axios.post<ApiResponse>(
-          `${API_BASE_URL}/auth/login`,
-          {
-            gmail: "msaidmin@gmail.com",
-            password: "hashed_password_2",
-          }
-        );
-
-        const authToken = response.data.message.token[0];
-        localStorage.setItem("token", authToken);
-        setToken(authToken);
-      } catch (error) {
-        console.error("Login failed:", error);
-        setError("Login failed. Please check credentials and try again.");
-      }
-    };
-
-    loginAndFetchToken();
-  }, []);
-
-  useEffect(() => {
+    const token = localStorage.getItem("token")
     const fetchCases = async () => {
       if (!token) return;
       try {
