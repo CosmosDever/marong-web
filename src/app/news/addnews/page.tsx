@@ -7,8 +7,13 @@ import Head from "next/head";
 import Image from "next/image";
 import Sidebar from "../../component/sidebar";
 import "mapbox-gl/dist/mapbox-gl.css";
+import dotenv from "dotenv";
 import mapboxgl from "mapbox-gl";
-import { GoogleMap, useJsApiLoader, Autocomplete } from "@react-google-maps/api";
+import {
+  GoogleMap,
+  useJsApiLoader,
+  Autocomplete,
+} from "@react-google-maps/api";
 import { uploadImage } from "../../component/imageUpload";
 const API_BASE_URL = "http://localhost:8080/api"; // Define your API base URL
 
@@ -17,11 +22,13 @@ interface ApiResponse {
     token: string[];
   };
 }
-
+dotenv.config();
 const AddNewsPage: FC = () => {
   const [token, setToken] = useState<string | null>(null); // Define setToken
   const router = useRouter();
-  const [markerCoordinates, setMarkerCoordinates] = useState<[number, number]>([0, 0]);
+  const [markerCoordinates, setMarkerCoordinates] = useState<[number, number]>([
+    0, 0,
+  ]);
   const [showUploadPopup, setShowUploadPopup] = useState(false);
   const [notification, setNotification] = useState<any>(null);
   const [title, setTitle] = useState("");
@@ -47,14 +54,13 @@ const AddNewsPage: FC = () => {
   });
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyCrrohIKFYapXv-xhk9swyHjk6RwT0EpIA",
+    googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
     libraries: ["places"],
   });
 
   useEffect(() => {
     if (mapContainerRef.current) {
-      mapboxgl.accessToken =
-        "pk.eyJ1IjoicHJhbTQ3IiwiYSI6ImNtNXRzMzdnZDEwZjkyaXEwbzU3Y2J2cnQifQ.3e4ZNgqhVduJkxgtzMCkUw";
+      mapboxgl.accessToken = process.env.MAPBOX_TOKEN || "";
 
       const map = new mapboxgl.Map({
         container: mapContainerRef.current,
@@ -84,14 +90,6 @@ const AddNewsPage: FC = () => {
       };
     }
   }, []);
-
-
-
-  
-
-
-
-
 
   const handleCancel = () => {
     setTitle("");
@@ -141,32 +139,44 @@ const AddNewsPage: FC = () => {
       }
     }
   };
-  
 
   const handleSave = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      setNotification({ status: "error", message: "Authentication token is missing" });
+      setNotification({
+        status: "error",
+        message: "Authentication token is missing",
+      });
       return;
     }
-  
+
     try {
       const formDataToSend = new FormData();
       formDataToSend.append("title", formData.title);
       formDataToSend.append("content", formData.content);
-      formDataToSend.append("location_description", formData.location.description);
+      formDataToSend.append(
+        "location_description",
+        formData.location.description
+      );
       formDataToSend.append("latitude", markerCoordinates[0].toString());
       formDataToSend.append("longitude", markerCoordinates[1].toString());
-      formDataToSend.append("type", "news"); 
+      formDataToSend.append("type", "news");
       formDataToSend.append("picture", formData.picture); // Assuming picture URL is in the state
-  
-      const response = await axios.post(`${API_BASE_URL}/News/addNews`, formDataToSend, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+
+      const response = await axios.post(
+        `${API_BASE_URL}/News/addNews`,
+        formDataToSend,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setNotification({
+        status: "success",
+        message: "News saved successfully",
       });
-  
-      setNotification({ status: "success", message: "News saved successfully" });
       setTimeout(() => router.push("/news"), 3000);
     } catch (error) {
       const err = error as any;
@@ -174,12 +184,10 @@ const AddNewsPage: FC = () => {
       setNotification({ status: "error", message: "Failed to save news" });
     }
   };
-  
-  
-  
 
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -187,8 +195,9 @@ const AddNewsPage: FC = () => {
     }));
   };
 
-
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (file && file.type.startsWith("image/")) {
       setImagePreview(URL.createObjectURL(file));
@@ -204,7 +213,6 @@ const AddNewsPage: FC = () => {
       }
     }
   };
-
 
   return (
     <>
@@ -222,22 +230,27 @@ const AddNewsPage: FC = () => {
             <div className="mt-10 w-[86%] mx-auto">
               <div className="flex gap-4">
                 <div className="flex-1 -mr-10 relative" ref={imageRef}>
-                    <div className="relative" style={{ width: "70vh", height: "35vh" }}>
+                  <div
+                    className="relative"
+                    style={{ width: "70vh", height: "35vh" }}
+                  >
                     {imagePreview && (
                       <Image
-                      src={imagePreview}
-                      alt="Uploaded Preview"
-                      fill
-                      className="rounded-lg object-cover"
+                        src={imagePreview}
+                        alt="Uploaded Preview"
+                        fill
+                        className="rounded-lg object-cover"
                       />
                     )}
                     <div
                       onClick={handleImageClick}
                       className="absolute top-0 left-0 w-full h-full bg-black opacity-40 text-white flex items-center justify-center text-xl rounded-lg hover:opacity-70 transition-opacity duration-300 cursor-pointer z-10"
                     >
-                      <span className="pointer-events-none">Upload New Picture</span>
+                      <span className="pointer-events-none">
+                        Upload New Picture
+                      </span>
                     </div>
-                    </div>
+                  </div>
                 </div>
 
                 <div
@@ -249,29 +262,37 @@ const AddNewsPage: FC = () => {
 
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="col-span-1">
-                  <label className="block text-gray-700 font-semibold">Title:</label>
+                  <label className="block text-gray-700 font-semibold">
+                    Title:
+                  </label>
                   <input
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  className="p-2 border rounded-lg w-full"
-                  placeholder="Title"
-                />
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    className="p-2 border rounded-lg w-full"
+                    placeholder="Title"
+                  />
                 </div>
 
                 <div className="col-span-1">
-                  <label className="block text-gray-700 font-semibold">Location Description:</label>
+                  <label className="block text-gray-700 font-semibold">
+                    Location Description:
+                  </label>
                   {isLoaded && (
                     <Autocomplete
-                    onLoad={(auto) => setAutocomplete(auto)}
-                    onPlaceChanged={onPlaceChanged}>
+                      onLoad={(auto) => setAutocomplete(auto)}
+                      onPlaceChanged={onPlaceChanged}
+                    >
                       <input
                         name="description"
                         value={formData.location.description}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                           setFormData((prev) => ({
                             ...prev,
-                            location: { ...prev.location, description: e.target.value },
+                            location: {
+                              ...prev.location,
+                              description: e.target.value,
+                            },
                           }))
                         }
                         className="p-2 border rounded-lg w-full"
@@ -282,7 +303,9 @@ const AddNewsPage: FC = () => {
                 </div>
 
                 <div className="col-span-2">
-                  <label className="block text-gray-700 font-semibold">Content:</label>
+                  <label className="block text-gray-700 font-semibold">
+                    Content:
+                  </label>
                   <textarea
                     name="content"
                     value={formData.content}
@@ -291,7 +314,6 @@ const AddNewsPage: FC = () => {
                     placeholder="Content"
                     rows={4}
                   />
-                  
                 </div>
               </div>
 
@@ -316,15 +338,22 @@ const AddNewsPage: FC = () => {
                   style={{ maxWidth: "600px", wordBreak: "break-word" }}
                 >
                   <h4 className="font-bold mb-2">{notification.message}</h4>
-                  <pre className="text-sm">{JSON.stringify(notification.data, null, 2)}</pre>
+                  <pre className="text-sm">
+                    {JSON.stringify(notification.data, null, 2)}
+                  </pre>
                 </div>
               )}
 
               {showUploadPopup && (
                 <div className="fixed top-0 left-0 w-full h-full bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
                   <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
-                  <div className="text-2xl mb-4">Upload Image</div>
-                    <input type="file" accept="image/*" onChange={handleFileChange} className="mb-4" />
+                    <div className="text-2xl mb-4">Upload Image</div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="mb-4"
+                    />
                     <div className="flex justify-end gap-4">
                       <button
                         onClick={() => setShowUploadPopup(false)}
