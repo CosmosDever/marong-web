@@ -7,6 +7,7 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import InProgressPopup from "./CaseInProgressPopup";
 import DonePopup from "./CaseDonePopup";
+import { useRouter } from "next/navigation";
 
 export async function updateCancel(detailCancel: string, id: string) {
   if (!detailCancel) {
@@ -128,11 +129,17 @@ interface ApiResponse {
   };
 }
 
+interface CaseData {
+  status: string;
+}
+
 const API_BASE_URL = "http://localhost:8080/api";
 
 const CaseControl: React.FC = () => {
+  const router = useRouter();
   const params = useParams();
   const id = String(params.id);
+  const [cases, setCases] = useState<CaseData[] | null>(null);
   const [isInProgressBtnVisible, setIsInProgressBtnVisible] = useState(true);
   const [isDoneBtnVisible, setIsDoneBtnVisible] = useState(false);
   const [isCancelPopupVisible, setIsCancelPopupVisible] = useState(false);
@@ -145,40 +152,30 @@ const CaseControl: React.FC = () => {
   const [imageDone, setImageDone] = useState(String);
   const [token, setToken] = useState<string | null>(null);
 
-  // TOKEN
   useEffect(() => {
-    const loginAndFetchToken = async () => {
+    const token = localStorage.getItem("token");
+    const fetchCases = async () => {
+      if (!token) return;
       try {
-        const response = await axios.post<ApiResponse>(
-          `${API_BASE_URL}/auth/login`,
+        const response = await axios.get<{ data: CaseData }>(
+          `${API_BASE_URL}/case/${id}`,
           {
-            gmail: "msaidmin@gmail.com",
-            password: "hashed_password_2",
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
 
-        const authToken = response.data.message.token[0];
-
-        // Store the token in localStorage
-        localStorage.setItem("token", authToken);
-
-        // Set the token in state
-        setToken(authToken);
-      } catch (error) {
-        console.error("Login failed:", error);
+        setCases([response.data.data]);
+        console.log("Status : ", cases?.[0]?.status);
+      } catch (err) {
+        console.log("Error : ", err);
       }
     };
 
-    // Check if the token exists in localStorage before fetching
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      setToken(storedToken);
-    } else {
-      loginAndFetchToken();
-    }
-  }, []);
+    fetchCases();
+  }, [id, token]);
 
   const handleSubmit = async (type: "cancel" | "inProgress" | "done") => {
+    const token = localStorage.getItem("token");
     if (type === "cancel") {
       // CANCEL
       try {
@@ -201,6 +198,7 @@ const CaseControl: React.FC = () => {
                 }
               );
               console.log("Cancel updated:", response.data);
+              router.back();
             } catch (err) {
               console.error("Error occurred:", err);
             }
@@ -233,6 +231,7 @@ const CaseControl: React.FC = () => {
                 }
               );
               console.log("In progress updated:", response.data);
+              router.back();
             } catch (err) {
               console.error("Error occurred:", err);
             }
@@ -242,8 +241,6 @@ const CaseControl: React.FC = () => {
           //POST---
 
           setIsInProgressPopupVisible(false);
-          setIsInProgressBtnVisible(false);
-          setIsDoneBtnVisible(true);
         } else {
           console.error("Failed to update case status.");
         }
@@ -259,14 +256,6 @@ const CaseControl: React.FC = () => {
           const post_done = async () => {
             if (!token) return;
             try {
-              // const response = await axios.post(
-              //   `${API_BASE_URL}/case/${id}/changeStatus/done`,
-              //   { detail: detailInProgress, picture: imageDone },
-              //   {
-              //     headers: { Authorization: `Bearer ${token}` },
-              //   }
-              // );
-
               const formData = new FormData();
               formData.append("detail", detailDone); // Append detail
               formData.append("picture", imageDone); // Append picture (assuming imageDone is a File or Blob)
@@ -283,6 +272,7 @@ const CaseControl: React.FC = () => {
                 }
               );
               console.log("Done updated:", response.data);
+              router.back();
             } catch (err) {
               console.error("Error occurred:", err);
             }
@@ -319,31 +309,40 @@ const CaseControl: React.FC = () => {
 
   return (
     <>
-      <div className="z-10 w-[20vw] h-[12vh] fixed bottom-10 right-7 flex justify-evenly items-center bg-lightblue-bg rounded-xl">
-        <button
-          onClick={() => togglePopup("cancel")}
-          className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-red-500 text-white hover:bg-red-600 active:bg-red-800"
-        >
-          Cancel operation
-        </button>
-        {isInProgressBtnVisible && (
-          <button
-            id="In progress btn"
-            onClick={() => togglePopup("inProgress")}
-            className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-800"
-          >
-            Mark as In progress
-          </button>
-        )}
-        {isDoneBtnVisible && (
-          <button
-            onClick={() => togglePopup("done")}
-            className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-blue-700 text-white hover:bg-blue-800 active:bg-blue-900"
-          >
-            Mark as Done
-          </button>
-        )}
-      </div>
+      {/* {cases?.[0]?.status === "Waiting" || */}
+        {/* (cases?.[0]?.status === "InProgress" && ( */}
+          <div className="z-10 w-[20vw] h-[12vh] fixed bottom-10 right-7 flex justify-evenly items-center bg-lightblue-bg rounded-xl">
+            {/* Cancel operation */}
+
+            <button
+              onClick={() => togglePopup("cancel")}
+              className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-red-500 text-white hover:bg-red-600 active:bg-red-800"
+            >
+              Cancel operation
+            </button>
+
+            {/* Mark as In progress */}
+            {cases?.[0]?.status === "Waiting" && (
+              <button
+                id="In progress btn"
+                onClick={() => togglePopup("inProgress")}
+                className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-800"
+              >
+                Mark as In progress
+              </button>
+            )}
+            {/* Mark as Done */}
+            {cases?.[0]?.status === "InProgress" && (
+              <button
+                onClick={() => togglePopup("done")}
+                className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-blue-700 text-white hover:bg-blue-800 active:bg-blue-900"
+              >
+                Mark as Done
+              </button>
+            )}
+          </div>
+        {/* ))} */}
+
       {isCancelPopupVisible && (
         <CancelPopup
           message="Are you sure you want to cancel?"

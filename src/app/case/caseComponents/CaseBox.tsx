@@ -171,7 +171,7 @@ const CaseBox: React.FC = () => {
             className="w-[30vw] h-full pl-[1vw] border-blue-600 border-4 rounded-s-lg
            active:border-blue-900 active:outline-none focus:border-blue-900 focus:outline-none"
             type="text"
-            placeholder="Search..."
+            placeholder="Type search.."
           />
         </div>
         {/* filter btn */}
