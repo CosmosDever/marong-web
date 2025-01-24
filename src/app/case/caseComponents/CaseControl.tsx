@@ -123,12 +123,6 @@ export async function postDone(
   );
 }
 
-interface ApiResponse {
-  message: {
-    token: string[];
-  };
-}
-
 interface CaseData {
   status: string;
 }
@@ -139,9 +133,7 @@ const CaseControl: React.FC = () => {
   const router = useRouter();
   const params = useParams();
   const id = String(params.id);
-  const [cases, setCases] = useState<CaseData[] | null>(null);
-  const [isInProgressBtnVisible, setIsInProgressBtnVisible] = useState(true);
-  const [isDoneBtnVisible, setIsDoneBtnVisible] = useState(false);
+  const [status, setStatus] = useState(String);
   const [isCancelPopupVisible, setIsCancelPopupVisible] = useState(false);
   const [isInProgressPopupVisible, setIsInProgressPopupVisible] =
     useState(false);
@@ -164,8 +156,9 @@ const CaseControl: React.FC = () => {
           }
         );
 
-        setCases([response.data.data]);
-        console.log("Status : ", cases?.[0]?.status);
+        setStatus(response.data.data.status);
+        console.log("response.data.data.status : ", response.data.data.status);
+        // console.log("Status : ", status);
       } catch (err) {
         console.log("Error : ", err);
       }
@@ -173,6 +166,10 @@ const CaseControl: React.FC = () => {
 
     fetchCases();
   }, [id, token]);
+
+  useEffect(() => {
+    console.log("Updated Status : ", status);
+  }, [status]);
 
   const handleSubmit = async (type: "cancel" | "inProgress" | "done") => {
     const token = localStorage.getItem("token");
@@ -309,8 +306,8 @@ const CaseControl: React.FC = () => {
 
   return (
     <>
-      {/* {cases?.[0]?.status === "Waiting" || */}
-        {/* (cases?.[0]?.status === "InProgress" && ( */}
+      {status === "Waiting" ||
+        (status === "InProgress" && (
           <div className="z-10 w-[20vw] h-[12vh] fixed bottom-10 right-7 flex justify-evenly items-center bg-lightblue-bg rounded-xl">
             {/* Cancel operation */}
 
@@ -322,7 +319,7 @@ const CaseControl: React.FC = () => {
             </button>
 
             {/* Mark as In progress */}
-            {cases?.[0]?.status === "Waiting" && (
+            {status === "Waiting" && (
               <button
                 id="In progress btn"
                 onClick={() => togglePopup("inProgress")}
@@ -332,7 +329,7 @@ const CaseControl: React.FC = () => {
               </button>
             )}
             {/* Mark as Done */}
-            {cases?.[0]?.status === "InProgress" && (
+            {status === "InProgress" && (
               <button
                 onClick={() => togglePopup("done")}
                 className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-blue-700 text-white hover:bg-blue-800 active:bg-blue-900"
@@ -341,7 +338,7 @@ const CaseControl: React.FC = () => {
               </button>
             )}
           </div>
-        {/* ))} */}
+        ))}
 
       {isCancelPopupVisible && (
         <CancelPopup
