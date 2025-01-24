@@ -130,7 +130,7 @@ interface ApiResponse {
 }
 
 interface CaseData {
-  status:string;
+  status: string;
 }
 
 const API_BASE_URL = "http://localhost:8080/api";
@@ -152,8 +152,8 @@ const CaseControl: React.FC = () => {
   const [imageDone, setImageDone] = useState(String);
   const [token, setToken] = useState<string | null>(null);
 
-  useEffect(( ) => {
-    const token = localStorage.getItem("token")
+  useEffect(() => {
+    const token = localStorage.getItem("token");
     const fetchCases = async () => {
       if (!token) return;
       try {
@@ -165,8 +165,9 @@ const CaseControl: React.FC = () => {
         );
 
         setCases([response.data.data]);
+        console.log("Status : ", cases?.[0]?.status);
       } catch (err) {
-        console.log("Error : ",err)
+        console.log("Error : ", err);
       }
     };
 
@@ -174,7 +175,7 @@ const CaseControl: React.FC = () => {
   }, [id, token]);
 
   const handleSubmit = async (type: "cancel" | "inProgress" | "done") => {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token");
     if (type === "cancel") {
       // CANCEL
       try {
@@ -240,7 +241,6 @@ const CaseControl: React.FC = () => {
           //POST---
 
           setIsInProgressPopupVisible(false);
-
         } else {
           console.error("Failed to update case status.");
         }
@@ -256,7 +256,6 @@ const CaseControl: React.FC = () => {
           const post_done = async () => {
             if (!token) return;
             try {
-
               const formData = new FormData();
               formData.append("detail", detailDone); // Append detail
               formData.append("picture", imageDone); // Append picture (assuming imageDone is a File or Blob)
@@ -310,38 +309,39 @@ const CaseControl: React.FC = () => {
 
   return (
     <>
-    {cases?.[0]?.status === "Waiting" || cases?.[0]?.status === "InProgress" && (
-      <div className="z-10 w-[20vw] h-[12vh] fixed bottom-10 right-7 flex justify-evenly items-center bg-lightblue-bg rounded-xl">
-      {/* Cancel operation */}
-      
-        <button
-          onClick={() => togglePopup("cancel")}
-          className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-red-500 text-white hover:bg-red-600 active:bg-red-800"
-        >
-          Cancel operation
-        </button>
-      
-        {/* Mark as In progress */}
-        {cases?.[0]?.status === "Waiting" && (
-          <button
-            id="In progress btn"
-            onClick={() => togglePopup("inProgress")}
-            className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-800"
-          >
-            Mark as In progress
-          </button>
-        )}
-        {/* Mark as Done */}
-        {cases?.[0]?.status === "InProgress" && (
-          <button
-            onClick={() => togglePopup("done")}
-            className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-blue-700 text-white hover:bg-blue-800 active:bg-blue-900"
-          >
-            Mark as Done
-          </button>
-        )}
-      </div>
-)}
+      {/* {cases?.[0]?.status === "Waiting" || */}
+        {/* (cases?.[0]?.status === "InProgress" && ( */}
+          <div className="z-10 w-[20vw] h-[12vh] fixed bottom-10 right-7 flex justify-evenly items-center bg-lightblue-bg rounded-xl">
+            {/* Cancel operation */}
+
+            <button
+              onClick={() => togglePopup("cancel")}
+              className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-red-500 text-white hover:bg-red-600 active:bg-red-800"
+            >
+              Cancel operation
+            </button>
+
+            {/* Mark as In progress */}
+            {cases?.[0]?.status === "Waiting" && (
+              <button
+                id="In progress btn"
+                onClick={() => togglePopup("inProgress")}
+                className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-800"
+              >
+                Mark as In progress
+              </button>
+            )}
+            {/* Mark as Done */}
+            {cases?.[0]?.status === "InProgress" && (
+              <button
+                onClick={() => togglePopup("done")}
+                className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-blue-700 text-white hover:bg-blue-800 active:bg-blue-900"
+              >
+                Mark as Done
+              </button>
+            )}
+          </div>
+        {/* ))} */}
 
       {isCancelPopupVisible && (
         <CancelPopup
@@ -372,7 +372,6 @@ const CaseControl: React.FC = () => {
           setImageDone={setImageDone}
         />
       )}
-    
     </>
   );
 };

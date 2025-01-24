@@ -6,8 +6,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import dotenv from "dotenv";
 dotenv.config();
 
-// mapboxgl.accessToken = process.env.MAPBOX_TOKEN || "";
-mapboxgl.accessToken = "pk.eyJ1IjoicHJhbTQ3IiwiYSI6ImNtNXRzMzdnZDEwZjkyaXEwbzU3Y2J2cnQifQ.3e4ZNgqhVduJkxgtzMCkUw";
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
+// mapboxgl.accessToken = "pk.eyJ1IjoicHJhbTQ3IiwiYSI6ImNtNXRzMzdnZDEwZjkyaXEwbzU3Y2J2cnQifQ.3e4ZNgqhVduJkxgtzMCkUw";
 
 
 interface MapViewProps {
