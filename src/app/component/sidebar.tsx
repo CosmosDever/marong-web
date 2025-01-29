@@ -108,7 +108,7 @@ const Sidebar: FC = () => {
                           : "bg-transparent hover:bg-blue-900"
                       }`}
                     ></span>
-                    <Image
+                    <img
                       src={`/${name.toLowerCase()}.png`}
                       alt={`${name} icon`}
                       width={20}

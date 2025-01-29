@@ -21,7 +21,7 @@ const InProgressPopup: React.FC<PopupProps> = ({
         <form>
           <textarea
             className="my-[2vh] px-[1vw] py-[.5vh] w-full h-[20vh] text-wrap border-black border-2"
-            placeholder="Detail..."
+            placeholder="Type anything to confirm.."
             value={detail}
             onChange={(e) => setDetail(e.target.value)}
           ></textarea>

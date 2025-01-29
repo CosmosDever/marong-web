@@ -465,10 +465,10 @@ const handleSave = async () => {
               <div className="flex gap-4">
                 <div className="flex-1 -mr-10 relative" ref={imageRef}>
                   <div className="relative" style={{ width: "70vh", height: "35vh" }}>
-                  <Image
+                  <img
                     src={imagePreview || newsData.picture || "/newsimage.png"}
                     alt="news image"
-                    fill
+                    // fill
                     className="rounded-lg object-cover"
                   />
                     <div
