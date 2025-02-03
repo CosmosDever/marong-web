@@ -164,6 +164,7 @@ export default function AddAdmin() {
                   accept="image/*"
                   onChange={handleFileChange}
                   className="hidden"
+                  required
                 />
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
