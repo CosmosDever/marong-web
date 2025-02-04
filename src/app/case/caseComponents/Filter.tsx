@@ -28,6 +28,7 @@ const FilterButton: React.FC<Filter> = ({
     <div className="relative">
       {/* Filter Button */}
       <button
+      id="Filter btn"
         className="h-[5vh] px-[1vw] py-[1vh] border-blue-600 border-4 border-l-0 rounded-r-lg
       hover:bg-blue-600 hover:text-white group active:bg-blue-950 active:border-blue-950"
       onClick={toggleFilterVisibility}

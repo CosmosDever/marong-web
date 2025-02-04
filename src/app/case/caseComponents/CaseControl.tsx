@@ -8,6 +8,7 @@ import { useParams } from "next/navigation";
 import InProgressPopup from "./CaseInProgressPopup";
 import DonePopup from "./CaseDonePopup";
 import { useRouter } from "next/navigation";
+import Swal from 'sweetalert2';
 
 export async function updateCancel(detailCancel: string, id: string) {
   if (!detailCancel) {
@@ -16,7 +17,12 @@ export async function updateCancel(detailCancel: string, id: string) {
       message: "'Detail' is required when cancelling the case.",
     };
 
-    alert("'Detail' is required when cancelling the case.");
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "'Detail' is required when cancelling the case!",
+      footer: '<a href="#">Plase try again.</a>'
+    });
 
     return NextResponse.json(response);
   }
@@ -54,6 +60,12 @@ export async function postInProgress(detail: string, id: string) {
     };
 
     alert("'Detail' are required when changing status to 'in progress'");
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "'Detail' are required when changing status to In progress!",
+      footer: '<a href="#">Plase try again.</a>'
+    });
 
     return NextResponse.json(response);
   }
@@ -93,9 +105,12 @@ export async function postDone(
         "Both 'detail' and 'picture' are required when changing status to 'Done'.",
     };
 
-    alert(
-      "Both 'detail' and 'picture' are required when changing status to 'Done'."
-    );
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Both 'detail' and 'picture' are required when changing status to Done!",
+      footer: '<a href="#">Plase try again.</a>'
+    });
 
     return NextResponse.json(response);
   }
@@ -156,8 +171,9 @@ const CaseControl: React.FC = () => {
           }
         );
 
-        setStatus(response.data.data.status);
         console.log("response.data.data.status : ", response.data.data.status);
+        setStatus(response.data.data.status);
+        console.log("status : ",status);
         // console.log("Status : ", status);
       } catch (err) {
         console.log("Error : ", err);
@@ -165,11 +181,7 @@ const CaseControl: React.FC = () => {
     };
 
     fetchCases();
-  }, [id, token]);
-
-  useEffect(() => {
-    console.log("Updated Status : ", status);
-  }, [status]);
+  }, [id, token, status]);
 
   const handleSubmit = async (type: "cancel" | "inProgress" | "done") => {
     const token = localStorage.getItem("token");
@@ -306,39 +318,40 @@ const CaseControl: React.FC = () => {
 
   return (
     <>
-      {status === "Waiting" ||
-        (status === "InProgress" && (
-          <div className="z-10 w-[20vw] h-[12vh] fixed bottom-10 right-7 flex justify-evenly items-center bg-lightblue-bg rounded-xl">
-            {/* Cancel operation */}
+      {(status === "Waiting" || status === "InProgress") && (
+  <div className="z-10 w-[20vw] h-[12vh] fixed bottom-10 right-7 flex justify-evenly items-center bg-lightblue-bg rounded-xl">
+    {/* Cancel operation */}
+    <button
+    id="Cancel btn"
+      onClick={() => togglePopup("cancel")}
+      className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-red-500 text-white hover:bg-red-600 active:bg-red-800"
+    >
+      Cancel operation
+    </button>
 
-            <button
-              onClick={() => togglePopup("cancel")}
-              className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-red-500 text-white hover:bg-red-600 active:bg-red-800"
-            >
-              Cancel operation
-            </button>
+    {/* Mark as In Progress */}
+    {status === "Waiting" && (
+      <button
+        id="In progress btn"
+        onClick={() => togglePopup("inProgress")}
+        className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-800"
+      >
+        Mark as In progress
+      </button>
+    )}
 
-            {/* Mark as In progress */}
-            {status === "Waiting" && (
-              <button
-                id="In progress btn"
-                onClick={() => togglePopup("inProgress")}
-                className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-800"
-              >
-                Mark as In progress
-              </button>
-            )}
-            {/* Mark as Done */}
-            {status === "InProgress" && (
-              <button
-                onClick={() => togglePopup("done")}
-                className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-blue-700 text-white hover:bg-blue-800 active:bg-blue-900"
-              >
-                Mark as Done
-              </button>
-            )}
-          </div>
-        ))}
+    {/* Mark as Done */}
+    {status === "InProgress" && (
+      <button
+      id="Done btn"
+        onClick={() => togglePopup("done")}
+        className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-blue-700 text-white hover:bg-blue-800 active:bg-blue-900"
+      >
+        Mark as Done
+      </button>
+    )}
+  </div>
+)}
 
       {isCancelPopupVisible && (
         <CancelPopup
