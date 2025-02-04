@@ -11,6 +11,7 @@ interface User {
   birthday: string;
   gender: string;
   role: string;
+  telephone : string;
 }
 
 export default function AdminProfile() {
@@ -105,6 +106,15 @@ export default function AdminProfile() {
     router.back();
   };
 
+  const getFirstName = (fullName: string) => fullName.split(" ")[0] || "Not Available";
+  const getSurname = (fullName: string) => fullName.split(" ").slice(1).join(" ") || "Not Available";
+  const formatPhoneNumber = (phone: string) => {
+    if (!phone) return "Not Available";
+    const cleaned = phone.replace(/\D/g, "");
+    return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+  };
+  
+
   if (loading) {
     return (
       <div className="flex bg-blue-100 h-screen text-black">
@@ -140,40 +150,61 @@ export default function AdminProfile() {
         <div className="text-3xl font-bold mb-6">ADMIN PROFILE</div>
         <div className="flex justify-center items-center">
           <div className="bg-white shadow-md rounded-lg p-6 w-[90%] h-[90%] flex-col">
-            <div className="flex items-start mb-6">
+          <div className="flex items-start mb-6">
             <div className="flex-shrink-0 mr-6">
               <img
                 src={user.picture}
                 alt="Admin"
                 width={120}
                 height={120}
-                className="rounded-full border-2 border-blue-500"
+                className="rounded-full border-2 border-blue-500 object-cover w-[120px] h-[120px]"
               />
             </div>
+            <div className="flex-1 space-y-4">
+              <div className="flex space-x-4">
+                <div className="w-1/2">
+                  <label className="block text-gray-700 font-medium mb-2">First Name</label>
+                  <p className="w-full border border-gray-300 rounded-md px-4 py-2">
+                    {getFirstName(user.fullName)}
+                  </p>
+                </div>
+                <div className="w-1/2">
+                  <label className="block text-gray-700 font-medium mb-2">Last Name</label>
+                  <p className="w-full border border-gray-300 rounded-md px-4 py-2">
+                    {getSurname(user.fullName)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
               <div className="flex-1 space-y-4">
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">Your Name</label>
-                  <p className="w-full border border-gray-300 rounded-md px-4 py-2">
-                    {user.fullName || "Not Available"}
-                  </p>
+                <div className="flex space-x-4">
+                  <div className="w-1/2">
+                    <label className="block text-gray-700 font-medium mb-2">Birthday (dd/mm/yyyy)</label>
+                    <p className="w-full border border-gray-300 rounded-md px-4 py-2">
+                      {user.birthday ? new Date(user.birthday).toLocaleDateString("en-US", { day: "2-digit", month: "2-digit", year: "numeric" }) : "Not Available"}
+                    </p>
+                  </div>
+                  <div className="w-1/2">
+                    <label className="block text-gray-700 font-medium mb-2">Gender</label>
+                    <p className="w-full border border-gray-300 rounded-md px-4 py-2">
+                      {user.gender || "Not Available"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">Birthday</label>
-                  <p className="w-full border border-gray-300 rounded-md px-4 py-2">
-                    {user.birthday || "Not Available"}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">Gender</label>
-                  <p className="w-full border border-gray-300 rounded-md px-4 py-2">
-                    {user.gender || "Not Available"}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">Email</label>
-                  <p className="w-full border border-gray-300 rounded-md px-4 py-2">
-                    {user.gmail || "Not Available"}
-                  </p>
+                <div className="flex space-x-4">
+                <div className="w-1/2">
+                    <label className="block text-gray-700 font-medium mb-2">Email</label>
+                    <p className="w-full border border-gray-300 rounded-md px-4 py-2">
+                      {user.gmail || "Not Available"}
+                    </p>
+                  </div>
+                  <div className="w-1/2">
+                    <label className="block text-gray-700 font-medium mb-2">Tel</label>
+                    <p className="w-full border border-gray-300 rounded-md px-4 py-2">
+                      {formatPhoneNumber(user.telephone)}
+                    </p>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Role</label>
@@ -182,8 +213,7 @@ export default function AdminProfile() {
                   </p>
                 </div>
               </div>
-            </div>
-            <div className="text-right space-x-4">
+              <div className="text-right space-x-4">
               <button
                 onClick={handleCancel}
                 className="mt-10 py-2 px-6 text-sm text-white bg-gray-500 hover:bg-gray-700 rounded-lg"
@@ -199,9 +229,9 @@ export default function AdminProfile() {
                 </button>
               ) : null}
             </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
   );
 }

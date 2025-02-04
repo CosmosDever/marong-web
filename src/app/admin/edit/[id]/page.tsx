@@ -10,71 +10,63 @@ export default function AdminProfile() {
   const params = useParams();
   const router = useRouter();
   const userId = Number(params?.id);
-    const [adminData, setadminData] = useState({
-      roles: "",
-      id: ""
-    });
+  const [adminData, setAdminData] = useState({
+    roles: "",
+    id: ""
+  });
 
-  const [formData, setFormData] = useState<{
-    fullName: string;
-    password: string;
-    confirmPassword: string;
-    role: string;
-    picture: string | File;
-  }>({
-    fullName: "",
+  const [formData, setFormData] = useState({
+    firstname: "",
+    surname: "",
     password: "",
     confirmPassword: "",
     role: "",
-    picture: "",
+    picture: "" as string | File
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+      
+      try {
+        const response = await fetch(`http://localhost:8080/api/userdata/token/${token}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
 
-   useEffect(() => {
-      const fetchadminData = async () => {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          console.error("No token found");
+        if (!response.ok) {
+          console.error("Failed to fetch user data:", response.statusText);
           return;
         }
-    
-        try {
-          const response = await fetch(`http://localhost:8080/api/userdata/token/${token}`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`,
-            },
-          });
-    
-          if (!response.ok) {
-            console.error("Failed to fetch user data:", response.statusText);
-            return;
-          }
-    
-          const result = await response.json();
-    
-          if (result.statusCode === "200") {
-            const {roles, id } = result.data;
-          
-            const roleNameMatch = roles.match(/name=ROLE_(.+)\)/);
-            const roleName = roleNameMatch ? roleNameMatch[1] : "Unknown Role";
-          
-            setadminData({ roles: roleName, id });
-          } else {
-            console.error("Error in API response:", result.statusMessage);
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
+
+        const result = await response.json();
+
+        if (result.statusCode === "200") {
+          const { roles, id } = result.data;
+          const roleNameMatch = roles.match(/name=ROLE_(.+)\)/);
+          const roleName = roleNameMatch ? roleNameMatch[1] : "Unknown Role";
+          setAdminData({ roles: roleName, id });
+        } else {
+          console.error("Error in API response:", result.statusMessage);
         }
-      };
-    
-      fetchadminData();
-    }, []);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchAdminData();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -85,13 +77,12 @@ export default function AdminProfile() {
     const file = event.target.files ? event.target.files[0] : null;
     if (file && file.type.startsWith("image/")) {
       setImagePreview(URL.createObjectURL(file));
-      setFormData((prev) => ({ ...prev, picture: file }));
+      setFormData((prev) => ({ ...prev, picture: file as File }));
       setError("");
     } else {
       setError("โปรดเลือกไฟล์รูปภาพที่ถูกต้อง");
     }
   };
-  
 
   const handleSave = async () => {
     const token = localStorage.getItem("token");
@@ -103,14 +94,38 @@ export default function AdminProfile() {
     setLoading(true);
     setError("");
   
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.password && formData.password !== formData.confirmPassword) {
       setError("Password and Confirm Password do not match.");
+      setLoading(false);
       return;
     }
   
     try {
+      // 📌 ดึงข้อมูล Admin ปัจจุบัน
+      const response = await fetch(`http://localhost:8080/api/admin/${userId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to fetch current admin data.");
+      }
+  
+      const currentData = await response.json();
+  
+      let oldFullName = currentData?.data?.fullName || "";
+      let [oldFirstName, oldSurname] = oldFullName.split(" ");
+  
+      let newFirstName = formData.firstname || oldFirstName;
+      let newSurname = formData.surname || oldSurname;
+  
+      let updatedFullName = `${newFirstName} ${newSurname}`.trim();
+  
       let imageUrl = "";
-      if (formData.picture instanceof File) {
+      if (typeof formData.picture !== "string" && formData.picture) {
         try {
           imageUrl = await uploadImage(formData.picture);
         } catch (uploadError) {
@@ -120,32 +135,44 @@ export default function AdminProfile() {
         }
       }
   
-      const payload: Record<string, any> = {
-        fullName: formData.fullName,
-        password: formData.password,
-        picture: imageUrl || "",
-      };
-  
+      // 📌 สร้าง payload โดยส่งเฉพาะค่าที่เปลี่ยนแปลง
+      const payload: Record<string, any> = {};
+      
+      if (updatedFullName !== oldFullName) {
+        payload.fullName = updatedFullName;
+      }
+      if (formData.password) {
+        payload.password = formData.password;
+      }
+      if (imageUrl) {
+        payload.picture = imageUrl;
+      }
       if (adminData.roles === "master Admin" && formData.role) {
         payload.role = formData.role;
       }
   
+      if (Object.keys(payload).length === 0) {
+        setError("No changes detected.");
+        setLoading(false);
+        return;
+      }
+  
       console.log("Payload:", payload);
   
-      const response = await fetch(`http://localhost:8080/api/admin/${userId}/edit`, {
+      const updateResponse = await fetch(`http://localhost:8080/api/admin/${userId}/edit`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
   
-      if (!response.ok) {
+      if (!updateResponse.ok) {
         throw new Error("Failed to update admin profile.");
       }
   
-      const data = await response.json();
+      const data = await updateResponse.json();
       if (data.status === "success") {
         router.back();
       } else {
@@ -158,7 +185,6 @@ export default function AdminProfile() {
     }
   };
   
-
   const handleCancel = () => {
     router.back();
   };
@@ -204,15 +230,27 @@ export default function AdminProfile() {
               </div>
               <div className="flex-1 space-y-4">
                 {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">Full Name</label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-4 py-2"
-                  />
+                <div className="flex space-x-4">
+                  <div className="w-1/2">
+                    <label className="block text-gray-700 font-medium mb-2">First Name</label>
+                    <input
+                      type="text"
+                      name="firstname"
+                      value={formData.firstname}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-md px-4 py-2"
+                    />
+                  </div>
+                  <div className="w-1/2">
+                    <label className="block text-gray-700 font-medium mb-2">Last Name</label>
+                    <input
+                      type="text"
+                      name="surname"
+                      value={formData.surname}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-md px-4 py-2"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Password</label>

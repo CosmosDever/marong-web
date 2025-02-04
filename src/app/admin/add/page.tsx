@@ -6,14 +6,14 @@ import { uploadImage } from "../../component/imageUpload";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
-
 export default function AddAdmin() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [imagePreview, setImagePreview] = useState("");
   const [formData, setFormData] = useState({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     gmail: "",
     picture: "",
     password: "",
@@ -40,41 +40,41 @@ export default function AddAdmin() {
         setErrorMessage("โปรดเลือกไฟล์รูปภาพที่ถูกต้อง");
         return;
       }
-  
+
       setImagePreview(URL.createObjectURL(file));
       setFormData({ ...formData, picture: file });
     }
   };
-  
+
   const handleSubmit = async (event: any) => {
     event.preventDefault();
-  
+
     const token = localStorage.getItem("token");
     if (!token) {
       setErrorMessage("กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ");
       window.location.href = "/login";
       return;
     }
-  
+
     if (formData.password !== formData.confirmPassword) {
       setErrorMessage("รหัสผ่านไม่ตรงกัน");
       return;
     }
-  
+
     try {
       setLoading(true);
       setErrorMessage("");
       setSuccessMessage("");
-  
+
       let pictureURL = "";
-  
+
       if (formData.picture) {
         const file = formData.picture as unknown as File;
-        pictureURL = await uploadImage(file); 
+        pictureURL = await uploadImage(file);
       }
-  
+
       const requestBody = {
-        fullName: formData.fullName,
+        fullName: `${formData.firstName} ${formData.lastName}`,
         gmail: formData.gmail,
         picture: pictureURL,
         password: formData.password,
@@ -83,7 +83,7 @@ export default function AddAdmin() {
         gender: formData.gender,
         role: formData.role,
       };
-  
+
       const response = await axios.post(
         "http://localhost:8080/api/admin/add",
         requestBody,
@@ -94,13 +94,13 @@ export default function AddAdmin() {
           },
         }
       );
-  
+
       if (response?.data?.status === "success") {
         const { id, full_name, gmail, role } = response.data.data;
         setSuccessMessage(
           `เพิ่มบัญชีสำเร็จ: ID: ${id}, Name: ${full_name}, Email: ${gmail}, Role: ${role}`
         );
-  
+
         setTimeout(() => {
           router.back();
         });
@@ -114,7 +114,6 @@ export default function AddAdmin() {
       setLoading(false);
     }
   };
-  
 
   const handleChange = (event: any) => {
     const { name, value } = event.target;
@@ -124,8 +123,6 @@ export default function AddAdmin() {
   const handleCancel = () => {
     router.back();
   };
-
-
 
   return (
     <div className="flex bg-blue-100 h-screen text-black">
@@ -178,27 +175,81 @@ export default function AddAdmin() {
             </div>
 
             <div className="flex-1 ml-6">
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-2">Full Name</label>
-                <input
-                  type="text"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded-md px-4 py-2"
-                />
+              <div className="flex space-x-4">
+                <div className="mb-4 w-1/2">
+                  <label className="block text-gray-700 font-medium mb-2">First Name</label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-gray-300 rounded-md px-4 py-2"
+                  />
+                </div>
+                <div className="mb-4 w-1/2">
+                  <label className="block text-gray-700 font-medium mb-2">Last Name</label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-gray-300 rounded-md px-4 py-2"
+                  />
+                </div>
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-2">Email</label>
-                <input
-                  type="email"
-                  name="gmail"
-                  value={formData.gmail}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded-md px-4 py-2"
-                />
+              <div className="flex space-x-4">
+                <div className="mb-4 w-1/2">
+                  <label className="block text-gray-700 font-medium mb-2">Email</label>
+                    <input
+                      type="email"
+                      name="gmail"
+                      value={formData.gmail}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-md px-4 py-2"
+                    />
+                </div>
+                <div className="mb-4 w-1/2">
+                  <label className="block text-gray-700 font-medium mb-2">Telephone</label>
+                    <input
+                      type="text"
+                      name="telephone"
+                      value={formData.telephone}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-md px-4 py-2"
+                    />
+                </div>
+              </div>
+              <div className="flex space-x-4">
+                <div className="mb-4 w-1/2">
+                  <label className="block text-gray-700 font-medium mb-2">Birthday</label>
+                    <input
+                      type="date"
+                      name="birthday"
+                      value={formData.birthday}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-md px-4 py-2"
+                    />
+                </div>
+                <div className="mb-4 w-1/2">
+                  <label className="block text-gray-700 font-medium mb-2">Gender</label>
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-md px-4 py-2"
+                    >
+                      <option value="" disabled>Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                </div>
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700 font-medium mb-2">Role</label>
@@ -209,7 +260,7 @@ export default function AddAdmin() {
                   required
                   className="w-full border border-gray-300 rounded-md px-4 py-2"
                 >
-                   <option value="" disabled>Select Role</option>
+                  <option value="" disabled>Select Role</option>
                   <option value="master Admin">Master Admin</option>
                   <option value="Admin">Admin</option>
                 </select>
@@ -236,47 +287,10 @@ export default function AddAdmin() {
                   className="w-full border border-gray-300 rounded-md px-4 py-2"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-2">Birthday</label>
-                <input
-                  type="date"
-                  name="birthday"
-                  value={formData.birthday}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded-md px-4 py-2"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-2">Telephone</label>
-                <input
-                  type="text"
-                  name="telephone"
-                  value={formData.telephone}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded-md px-4 py-2"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-2">Gender</label>
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded-md px-4 py-2"
-                >
-                  <option value="" disabled>Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
             </div>
           </div>
           <div className="text-right space-x-4">
-          <button
+            <button
               type="button"
               onClick={handleCancel}
               className="mt-10 py-2 px-6 text-sm text-white bg-gray-500 hover:bg-gray-700 rounded-lg"
