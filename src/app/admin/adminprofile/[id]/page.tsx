@@ -217,6 +217,7 @@ export default function AdminProfile() {
               <button
                 onClick={handleCancel}
                 className="mt-10 py-2 px-6 text-sm text-white bg-gray-500 hover:bg-gray-700 rounded-lg"
+                id="backtoAllAdminButton"
               >
                 Back
               </button>
@@ -224,6 +225,7 @@ export default function AdminProfile() {
                 <button
                   onClick={() => handleCardClick(user.id)}
                   className="mt-10 py-2 px-6 text-sm text-white bg-blue-500 hover:bg-blue-700 rounded-lg"
+                  id="editProfileButton"
                 >
                   Edit Profile
                 </button>

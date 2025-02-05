@@ -69,6 +69,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onDelete, onClick }) => {
   return (
     <div
       className="bg-white p-4 flex items-center rounded-lg shadow-md text-lg hover:bg-blue-200 cursor-pointer"
+      id={`adminid-${user.id}`}
       onClick={onClick}
     >
       <div className="w-1/4 text-left">
@@ -91,6 +92,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onDelete, onClick }) => {
               onDelete(user.id);
             }}
             className="text-red-600 hover:underline"
+            id="deleteadminButton"
           >
             Delete
           </button>

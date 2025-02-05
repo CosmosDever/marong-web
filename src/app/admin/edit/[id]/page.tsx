@@ -197,7 +197,7 @@ export default function AdminProfile() {
         <div className="flex justify-center items-center">
           <div className="bg-white shadow-md rounded-lg p-6 w-[90%] h-[90%] flex-col">
             <div className="flex items-start mb-6">
-              <div className="flex-shrink-0 mr-6 relative">
+              <div className="flex-shrink-0 mr-6 relative" id="editProfileImage">
                 {imagePreview ? (
                   <img
                     src={imagePreview}
@@ -205,11 +205,18 @@ export default function AdminProfile() {
                     width={120}
                     height={120}
                     className="rounded-full border-2 border-blue-500"
+                    
                   />
                 ) : (
-                  <div className="w-24 h-24 rounded-full bg-gray-200 border-2 border-blue-500 flex items-center justify-center">
+                  <label className="w-24 h-24 rounded-full bg-gray-200 border-2 border-blue-500 flex items-center justify-center cursor-pointer" >
                     <span className="text-gray-500">No Image</span>
-                  </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </label>
                 )}
                 <label className="absolute bottom-0 right-0 bg-blue-500 p-1 rounded-full cursor-pointer">
                   <input
@@ -235,6 +242,7 @@ export default function AdminProfile() {
                     <label className="block text-gray-700 font-medium mb-2">First Name</label>
                     <input
                       type="text"
+                      id="editFirstName"
                       name="firstname"
                       value={formData.firstname}
                       onChange={handleInputChange}
@@ -245,6 +253,7 @@ export default function AdminProfile() {
                     <label className="block text-gray-700 font-medium mb-2">Last Name</label>
                     <input
                       type="text"
+                      id="editLastName"
                       name="surname"
                       value={formData.surname}
                       onChange={handleInputChange}
@@ -255,6 +264,7 @@ export default function AdminProfile() {
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Password</label>
                   <input
+                    id="editPassword"
                     type="password"
                     name="password"
                     value={formData.password}
@@ -266,6 +276,7 @@ export default function AdminProfile() {
                   <label className="block text-gray-700 font-medium mb-2">Confirm Password</label>
                   <input
                     type="password"
+                    id="editConfirmPassword"
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
@@ -278,7 +289,7 @@ export default function AdminProfile() {
                     name="role"
                     value={formData.role}
                     onChange={handleInputChange}
-                    required
+                    id="editRole"
                     className="w-full border border-gray-300 rounded-md px-4 py-2"
                     disabled={adminData.roles !== "master Admin"}
                   >
@@ -294,12 +305,14 @@ export default function AdminProfile() {
             </div>
             <div className="text-right space-x-4">
               <button
+                id="cancelEditButton"
                 onClick={handleCancel}
                 className="mt-10 py-2 px-6 text-sm text-white bg-gray-500 hover:bg-gray-700 rounded-lg"
               >
                 Cancel
               </button>
               <button
+                id="saveEditButton"
                 onClick={handleSave}
                 disabled={loading}
                 className={`mt-10 py-2 px-6 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-700 ${

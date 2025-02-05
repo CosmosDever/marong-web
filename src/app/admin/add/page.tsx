@@ -143,18 +143,18 @@ export default function AddAdmin() {
 
           <div className="mb-4 flex items-start">
             <div className="relative">
-              {imagePreview ? (
-                <img
-                  src={imagePreview}
-                  alt="Profile Preview"
-                  className="w-24 h-24 object-cover rounded-full border-2 border-blue-500"
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-full bg-gray-200 border-2 border-blue-500 flex items-center justify-center">
-                  <span className="text-gray-500">No Image</span>
-                </div>
-              )}
-              <label className="absolute bottom-0 right-0 bg-blue-500 p-1 rounded-full cursor-pointer">
+              <label className="cursor-pointer" id="add_admin_picture">
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Profile Preview"
+                    className="w-24 h-24 object-cover rounded-full border-2 border-blue-500"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-gray-200 border-2 border-blue-500 flex items-center justify-center">
+                    <span className="text-gray-500">No Image</span>
+                  </div>
+                )}
                 <input
                   type="file"
                   name="picture"
@@ -163,6 +163,8 @@ export default function AddAdmin() {
                   className="hidden"
                   required
                 />
+              </label>
+              <label className="absolute bottom-0 right-0 bg-blue-500 p-1 rounded-full cursor-pointer">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-4 w-4 text-white"
@@ -181,6 +183,7 @@ export default function AddAdmin() {
                   <input
                     type="text"
                     name="firstName"
+                    id="addFirstName"
                     value={formData.firstName}
                     onChange={handleChange}
                     required
@@ -192,6 +195,7 @@ export default function AddAdmin() {
                   <input
                     type="text"
                     name="lastName"
+                    id="addLastName"
                     value={formData.lastName}
                     onChange={handleChange}
                     required
@@ -205,6 +209,7 @@ export default function AddAdmin() {
                     <input
                       type="email"
                       name="gmail"
+                      id="addGmail"
                       value={formData.gmail}
                       onChange={handleChange}
                       required
@@ -216,6 +221,7 @@ export default function AddAdmin() {
                     <input
                       type="text"
                       name="telephone"
+                      id="addTelephone"
                       value={formData.telephone}
                       onChange={handleChange}
                       required
@@ -229,6 +235,7 @@ export default function AddAdmin() {
                     <input
                       type="date"
                       name="birthday"
+                      id="addBirthday"
                       value={formData.birthday}
                       onChange={handleChange}
                       required
@@ -239,6 +246,7 @@ export default function AddAdmin() {
                   <label className="block text-gray-700 font-medium mb-2">Gender</label>
                     <select
                       name="gender"
+                      id="addGender"
                       value={formData.gender}
                       onChange={handleChange}
                       required
@@ -255,6 +263,7 @@ export default function AddAdmin() {
                 <label className="block text-gray-700 font-medium mb-2">Role</label>
                 <select
                   name="role"
+                  id="addRole"
                   value={formData.role}
                   onChange={handleChange}
                   required
@@ -270,6 +279,7 @@ export default function AddAdmin() {
                 <input
                   type="password"
                   name="password"
+                  id="addPassword"
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -281,6 +291,7 @@ export default function AddAdmin() {
                 <input
                   type="password"
                   name="confirmPassword"
+                  id="addConfirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
@@ -293,6 +304,7 @@ export default function AddAdmin() {
             <button
               type="button"
               onClick={handleCancel}
+              id="cancelAddAdminButton"
               className="mt-10 py-2 px-6 text-sm text-white bg-gray-500 hover:bg-gray-700 rounded-lg"
             >
               Cancel
@@ -300,6 +312,7 @@ export default function AddAdmin() {
             <button
               type="submit"
               disabled={loading}
+              id="addAdminButton"
               className={`py-2 px-6 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-700 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {loading ? "Processing..." : "Add Admin"}

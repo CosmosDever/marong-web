@@ -185,7 +185,7 @@ export default function AdminPage() {
         <div className="flex items-center justify-between mx-auto w-[90%]">
           <div className="text-3xl font-bold">ADMIN MANAGEMENT</div>
           {adminData.roles === "master Admin" && (
-            <Link href="/admin/add" className="text-blue-600 flex items-center">
+            <Link href="/admin/add" className="text-blue-600 flex items-center" id="add_admin">
               <Image src="/Addbtn.png" alt="Add Admin" width={30} height={30} className="mr-2" />
               <span className="translate-y-1">Add Admin</span>
             </Link>
@@ -206,7 +206,7 @@ export default function AdminPage() {
 
         {/* Card Container */}
         <div className="mt-4 w-[90%] mx-auto h-[calc(100vh-200px)] overflow-y-auto">
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-4" >
             {users.map((user) => (
               <UserCard
                 key={user.id}
@@ -227,12 +227,14 @@ export default function AdminPage() {
             <div className="flex justify-between">
               <button
                 onClick={handleCancelDelete}
+                id="canceldeleteadmin"
                 className="bg-gray-300 text-black py-2 px-4 rounded-lg hover:bg-gray-200"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
+                id="confirmdeleteadmin"
                 className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-500"
               >
                 Delete
