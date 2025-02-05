@@ -178,7 +178,7 @@ export default function AdminPage() {
   if (error) return <ErrorComponent message={error} />;
 
   return (
-    <div className="bg-blue-100 flex h-screen text-black overflow-auto">
+    <div className="bg-[#dee3f6] flex h-screen text-black overflow-auto">
       <Sidebar />
       <div className="flex-1 flex flex-col h-full">
         <div className="bg-white p-6 shadow-md">
