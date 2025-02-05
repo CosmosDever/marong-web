@@ -87,31 +87,31 @@ const CaseById: React.FC = () => {
         <Sidebar />
 
         {/* Location */}
-        <div className="absolute right-[3vw] top-[5vh] max-w-[20vw] border-2 border-blue-950 rounded-2xl shadow-xl">
-          <div className="relative w-[17vw] h-full flex-1 my-[1vh] mx-[.5vw] px-[1vw] overflow-y-hidden bg-blue-950 rounded-2xl">
-            <div className="flex w-[15vw] h-[15vw] mt-[2vh]">
-              <MapBox
-                coordinates={[
-                  // MOCK
-                  parseFloat(cases?.[0]?.location.coordinates[1] || "0"),
-                  parseFloat(cases?.[0]?.location.coordinates[0] || "0"),
-                ]}
-              />
-            </div>
-            <div className="flex flex-col my-[3vh] max-h-full max-w-[15vw] text-white text-wrap break-words">
-              <h1 className="font-semibold">Location :</h1>
-              <p className="font-normal">
-                {cases && cases[0] && cases[0].location.description === null
-                  ? "No information"
-                  : cases?.[0].location.description}
-              </p>
-            </div>
+        <div className="absolute right-[3vw] top-[5vh] w-[22vw] max-w-full bg-blue-950 rounded-2xl shadow-xl overflow-hidden">
+          {/* Map Image */}
+          <div className="w-full h-[15vw]">
+            <MapBox
+              coordinates={[
+                parseFloat(cases?.[0]?.location.coordinates[1] || "0"),
+                parseFloat(cases?.[0]?.location.coordinates[0] || "0"),
+              ]}
+            />
+          </div>
+
+          {/* Text Section */}
+          <div className="p-[1vw] flex flex-col my-[1vh] h-full text-white text-wrap break-words overflow-y-hidden ">
+            <h1 className="font-semibold text-white">
+              Location :{" "}
+              <span className="font-normal text-white">
+                {cases?.[0]?.location.description || "No information"}
+              </span>
+            </h1>
           </div>
         </div>
 
         <div className="w-full ml-[3vw] ">
           {/* Picture */}
-          <div className=" flex mt-[4vh] gap-4 ">
+          <div className=" flex mt-[4vh] gap-3 ">
             <img
               className="object-cover ml-[4vw] h-[40vh] w-[25vw] rounded-tl-3xl rounded-bl-3xl border"
               src={cases?.[0]?.picture}
@@ -129,30 +129,40 @@ const CaseById: React.FC = () => {
             />
           </div>
 
-          <div className=" pb-[4vh] pt-[1vh] ml-[3vw] mt-[3vh] w-[54vw] max-h-full text-wrap break-words justify-center border bg-blue-200 rounded-xl shadow-[2px_0_6px_rgba(0,0,0,0.3)] ">
-            <div className=" mt-[2vh] mx-[2vw] px-[2vw] pb-[1vh] w-[50vw] rounded-xl flex flex-row flex-wrap bg-white border">
-              <h1 className="pt-[1vh] text-2xl font-bold basis-1/3">
+          {/* Box */}
+          <div className=" pb-[2vh] pt-[1vh] ml-[4vw] mt-[3vh] w-[51vw] max-h-full text-wrap break-words justify-center border bg-blue-200 rounded-[1.7rem] shadow-[2px_0_4px_rgba(0,0,0,0.3)] ">
+            <div className=" mt-[1vh] ml-[1vw] px-[2vw] pb-[1vh] w-[49vw] rounded-xl flex flex-row bg-white border">
+              <h1 className="pt-[1vh] text-2xl font-bold w-[9vw]">
                 ID : <span className="font-normal">{cases?.[0]?.caseId}</span>
               </h1>
 
-              <h1 className="pt-[1vh] text-xl font-semibold basis-1/3">
+              <h1 className="pt-[1vh] text-xl font-bold w-[13vw]">
                 Status :{" "}
-                <span className="font-normal">{cases?.[0]?.status}</span>
+                <span
+                  className={`font-normal ${
+                    cases?.[0]?.status === "InProgress"
+                      ? "text-blue-500"
+                      : cases?.[0]?.status === "Waiting"
+                      ? "text-yellow-500"
+                      : cases?.[0]?.status === "Done"
+                      ? "text-blue-500"
+                      : cases?.[0]?.status === "Cancel"
+                      ? "text-red-500"
+                      : "text-black"
+                  }`}
+                >
+                  {cases?.[0]?.status}
+                </span>
               </h1>
-              <h1 className="pt-[1vh] text-lg font-semibold basis-1/3">
+              <h1 className="pt-[1vh] text-lg font-bold w-[18vw]">
                 Category :{" "}
                 <span className="font-normal">{cases?.[0]?.category}</span>
               </h1>
-
-              <h1 className="pt-[1vh] text-base font-thin basis-1/3">
-                Reported by: {cases?.[0]?.user.full_name} #
-                {cases?.[0]?.user.user_id}
-              </h1>
             </div>
 
-            <div className=" mt-[2vh] mx-[2vw] px-[2vw] pb-[1vh] w-[50vw] rounded-xl flex-1 flex-wrap bg-white border">
+            <div className="flex ">
               {/* Damage value */}
-              <div className="mt-[1vh]">
+              <div className="max-w-[12vw] h-[10vh] mt-[2vh] ml-[1vw] pt-[1vh] px-[2vw] pb-[1vh] w-[49vw] rounded-xl bg-white border">
                 <h1 className="font-semibold">
                   Damage value :
                   <span className="font-light">
@@ -163,15 +173,20 @@ const CaseById: React.FC = () => {
               </div>
 
               {/* Detail */}
-              <div className="mt-[3vh]">
+              <div className="w-[36vw] h-[10vh] mt-[2vh] ml-[1vw] pt-[1vh] px-[2vw] pb-[1vh] rounded-xl bg-white border">
                 <h1 className="font-semibold">Detail:</h1>
-                <p className="w-10/12">{cases?.[0]?.detail}</p>
+                <p className="w-full">{cases?.[0]?.detail}</p>
               </div>
             </div>
 
             {/* Control btn */}
             <CaseControl />
           </div>
+          {/* Report by ID */}
+          <h1 className="pt-[1vh] pl-[14vw] text-base font-thin basis-1/3 justify-end text-center ">
+            Reported by: {cases?.[0]?.user.full_name} #
+            {cases?.[0]?.user.user_id}
+          </h1>
         </div>
       </div>
     </>
