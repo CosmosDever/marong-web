@@ -123,7 +123,7 @@ const Sidebar: FC = () => {
             </ul>
           </div>
           <div className="flex flex-col justify-end w-full p-4 mb-[2vh]" >
-            <div className="flex items-center" onClick={() => handleCardClick()}>
+            <div className="flex items-center" onClick={() => handleCardClick()} id ="myProfileButton">
               <img
                 src={userData.picture}
                 alt="admin profile picture"
@@ -136,7 +136,7 @@ const Sidebar: FC = () => {
                 <div className="text-gray-500 text-sm">{userData.roles || "Role"}</div>
                 </div>
             </div>
-            <div className="flex items-center mt-3 py-2 rounded-lg group hover:bg-blue-100 ">
+            <div className="flex items-center mt-3 py-2 rounded-lg group hover:bg-blue-100 " id ="logoutButton" >
               <Image
                 src="/Logout.png"
                 alt="logout icon"

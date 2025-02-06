@@ -197,7 +197,7 @@ export default function AdminProfile() {
         <div className="flex justify-center items-center">
           <div className="bg-white shadow-md rounded-lg p-6 w-[90%] h-[90%] flex-col">
             <div className="flex items-start mb-6">
-              <div className="flex-shrink-0 mr-6 relative" id="editProfileImage">
+              <div className="flex-shrink-0 mr-6 relative" id="editProfileImageButton">
                 {imagePreview ? (
                   <img
                     src={imagePreview}
@@ -242,7 +242,7 @@ export default function AdminProfile() {
                     <label className="block text-gray-700 font-medium mb-2">First Name</label>
                     <input
                       type="text"
-                      id="editFirstName"
+                      id="editFirstNameBox"
                       name="firstname"
                       value={formData.firstname}
                       onChange={handleInputChange}
@@ -253,7 +253,7 @@ export default function AdminProfile() {
                     <label className="block text-gray-700 font-medium mb-2">Last Name</label>
                     <input
                       type="text"
-                      id="editLastName"
+                      id="editLastNameBox"
                       name="surname"
                       value={formData.surname}
                       onChange={handleInputChange}
@@ -264,7 +264,7 @@ export default function AdminProfile() {
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Password</label>
                   <input
-                    id="editPassword"
+                    id="editPasswordBox"
                     type="password"
                     name="password"
                     value={formData.password}
@@ -276,7 +276,7 @@ export default function AdminProfile() {
                   <label className="block text-gray-700 font-medium mb-2">Confirm Password</label>
                   <input
                     type="password"
-                    id="editConfirmPassword"
+                    id="editConfirmPasswordBox"
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
@@ -289,7 +289,7 @@ export default function AdminProfile() {
                     name="role"
                     value={formData.role}
                     onChange={handleInputChange}
-                    id="editRole"
+                    id="editRoleDropdown"
                     className="w-full border border-gray-300 rounded-md px-4 py-2"
                     disabled={adminData.roles !== "master Admin"}
                   >

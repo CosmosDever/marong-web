@@ -143,7 +143,7 @@ export default function AddAdmin() {
 
           <div className="mb-4 flex items-start">
             <div className="relative">
-              <label className="cursor-pointer" id="add_admin_picture">
+              <label className="cursor-pointer" id="addProfileImageButton">
                 {imagePreview ? (
                   <img
                     src={imagePreview}
@@ -182,7 +182,7 @@ export default function AddAdmin() {
                   <label className="block text-gray-700 font-medium mb-2">First Name</label>
                   <input
                     type="text"
-                    name="firstName"
+                    name="firstNameBox"
                     id="addFirstName"
                     value={formData.firstName}
                     onChange={handleChange}
@@ -195,7 +195,7 @@ export default function AddAdmin() {
                   <input
                     type="text"
                     name="lastName"
-                    id="addLastName"
+                    id="addLastNameBox"
                     value={formData.lastName}
                     onChange={handleChange}
                     required
@@ -209,7 +209,7 @@ export default function AddAdmin() {
                     <input
                       type="email"
                       name="gmail"
-                      id="addGmail"
+                      id="addGmailBox"
                       value={formData.gmail}
                       onChange={handleChange}
                       required
@@ -221,7 +221,7 @@ export default function AddAdmin() {
                     <input
                       type="text"
                       name="telephone"
-                      id="addTelephone"
+                      id="addTelephoneBox"
                       value={formData.telephone}
                       onChange={handleChange}
                       required
@@ -235,7 +235,7 @@ export default function AddAdmin() {
                     <input
                       type="date"
                       name="birthday"
-                      id="addBirthday"
+                      id="addBirthdayBox"
                       value={formData.birthday}
                       onChange={handleChange}
                       required
@@ -246,7 +246,7 @@ export default function AddAdmin() {
                   <label className="block text-gray-700 font-medium mb-2">Gender</label>
                     <select
                       name="gender"
-                      id="addGender"
+                      id="addGenderDropdown"
                       value={formData.gender}
                       onChange={handleChange}
                       required
@@ -263,7 +263,7 @@ export default function AddAdmin() {
                 <label className="block text-gray-700 font-medium mb-2">Role</label>
                 <select
                   name="role"
-                  id="addRole"
+                  id="addARoleDropdown"
                   value={formData.role}
                   onChange={handleChange}
                   required
@@ -279,7 +279,7 @@ export default function AddAdmin() {
                 <input
                   type="password"
                   name="password"
-                  id="addPassword"
+                  id="addPasswordBox"
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -291,7 +291,7 @@ export default function AddAdmin() {
                 <input
                   type="password"
                   name="confirmPassword"
-                  id="addConfirmPassword"
+                  id="addConfirmPasswordBox"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
@@ -312,7 +312,7 @@ export default function AddAdmin() {
             <button
               type="submit"
               disabled={loading}
-              id="addAdminButton"
+              id="confirmaddAdminButton"
               className={`py-2 px-6 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-700 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {loading ? "Processing..." : "Add Admin"}
