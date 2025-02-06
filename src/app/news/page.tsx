@@ -45,7 +45,7 @@ const NewsPage = () => {
 
 
   const router = useRouter();
-
+  const [isButtonLocked, setIsButtonLocked] = useState(true);
 
   const [newsData, setNewsData] = useState<NewsDetails[] | null>(null);
   const [news, setNews] = useState<NewsDetails[]>([]);
@@ -238,7 +238,12 @@ const NewsPage = () => {
     }
   };
 
-
+  useEffect(() => {
+    if (isPopupVisible) {
+      setIsButtonLocked(true);
+      setTimeout(() => setIsButtonLocked(false), 2000);
+    }
+  }, [isPopupVisible]);
 
 
   const refreshNewsList = async () => {
@@ -274,110 +279,91 @@ const NewsPage = () => {
 
   return (
     <>
-      <div className="bg-gray-100 flex h-screen">
+      <div className="bg-gray-100 flex flex-col md:flex-row h-screen">
         {/* Sidebar */}
         <Sidebar />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col bg-gray-100 h-full">
-            <div className="p-6">
+        <div className="flex-1 flex flex-col bg-gray-100 h-full overflow-auto">
+          <div className="p-6">
             {/* Header Section */}
-            <div className="flex items-center justify-between w-[87%] mx-auto">
+            <div className="flex flex-col md:flex-row items-center justify-between w-full md:w-[87%] mx-auto">
               {/* Heading */}
-              <div className="text-3xl font-bold">NEWS</div>
+              <div className="text-2xl md:text-3xl font-bold mb-4 md:mb-0">NEWS</div>
 
               {/* Add News Button */}
               <button
-              onClick={handleAddNewsClick} // Call the handler when the button is clicked
-              className="text-blue-600 flex items-center mr-10"
-            >
-              <Image
-                src="/Addbtn.png" // Path to your image
-                alt="Add News"
-                width={30} // Adjust width as needed
-                height={30} // Adjust height as needed
-                className="mr-2" // Adds margin to the right of the image to space it from the text
-              />
-              <span className="translate-y-1">Add News</span> {/* Moves text down by 1% */}
+                onClick={handleAddNewsClick}
+                className="text-blue-600 flex items-center transition-all duration-500 hover:scale-110 hover:text-blue-700"
+              >
+                <Image
+                  src="/Addbtn.png"
+                  alt="Add News"
+                  width={30}
+                  height={30}
+                  className="mr-2 transition-all duration-500 hover:scale-110"
+                />
+                <span className="translate-y-1">Add News</span>
               </button>
+
             </div>
 
             {/* Table Header */}
-            <table className="w-[90%] mx-auto table-fixed" style={{ height: "120px" }}>
-              <thead>
-              <tr className="text-gray-500">
-                <th className="p-2 text-center align-middle" // Centers horizontally and vertically
-                    style={{ width: "190px", height: "120px" }}>Picture</th>
-                <th className="p-2 text-center align-middle" // Centers horizontally and vertically
-                    style={{ width: "200px", height: "120px" }}>ID</th>
-                <th className="p-2 text-center align-middle" // Centers horizontally and vertically
-                    style={{ width: "200px", height: "120px" }}>Title</th>
-                <th className="p-2 text-center align-middle" // Centers horizontally and vertically
-                    style={{ width: "260px" }}>Date</th>
-                <th className="p-2 pr-[16%]" style={{ width: "270px", height: "120px" }}>
-                Edit
-                </th>
-              </tr>
-              </thead>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full ml-[-1%] table-fixed mt-[5vh] ">
+                <thead>
+                  <tr className="text-gray-500">
+                    <th className="p-2 text-center align-middle w-1/5">Picture</th>
+                    <th className="p-2 text-center align-middle w-1/5 pr-[6vh]">ID</th>
+                    <th className="p-2 text-center align-left w-1/5 pr-[14vh]">Title</th>
+                    <th className="p-2 text-center align-middle w-1/5 pr-[20vh]">Date</th>
+                    <th className="p-2 text-center align-middle w-1/5 pr-[30vh]">Edit</th>
+                  </tr>
+                </thead>
+              </table>
             </div>
+          </div>
 
           {/* Table Content */}
           <div
-            className="flex-1 mt-4 p-4 rounded-lg bg-[#dee3f6] h-[80%] w-[83.4%] absolute left-61 right-0 bottom-0 overflow-auto border-t-4"
+            className="flex-1 mt-[-1vh] p-4 rounded-lg bg-[#dee3f6] w-full md:w-[100%] mx-auto overflow-auto border-t-4"
             style={{ borderTopColor: "#BAC5ED" }}
           >
             {isLoading ? (
               <div className="text-center">Loading...</div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left">
+                <table className="w-full text-left md:w-[97%] ml-[1%]">
                   <tbody>
                     {newsData && newsData.map((news) => (
                       <tr
                         key={news.id}
-                        className="bg-[#E9ECF9] rounded-lg shadow-lg"
+                        className="bg-[#E9ECF9] rounded-lg shadow-lg mb-4"
                         style={{
-                          width: "90%",
-                          margin: "1rem auto",
+
                           display: "table",
                         }}
                       >
                         {/* Static Image */}
-                        <td
-                          className="p-2 border pl-[3%] w-60 h-120"
-                          style={{ width: "200px", height: "120px" }}
-                        >
+                        <td className="p-2 border w-1/5">
                           <img
-                          src={news.picture || "/placeholder-image.png"}
-                          alt="news image"
-                          width={150}
-                          height={120} // Adjusted height to fit the row height
-                          className="rounded-lg"
-                          style={{ objectFit: "cover", height: "100%" }} // Ensure the image fits the row height
+                            src={news.picture || "/placeholder-image.png"}
+                            alt="news image"
+                            className="rounded-lg w-full h-24 object-cover"
                           />
                         </td>
                         {/* Dynamic Data */}
-                        <td
-                          className="p-2 border text-center align-middle" // Centers horizontally and vertically
-                          style={{ width: "190px", height: "120px" }}
-                        >
+                        <td className="p-2 border text-center align-middle w-1/5">
                           {news.id}
                         </td>
-                        <td
-                          className="p-2 border text-center align-middle" // Centers horizontally and vertically
-                          style={{ width: "200px", height: "120px" }}
-                        >
+                        <td className="p-2 border text-center align-middle w-1/5">
                           {news.title}
                         </td>
-                        <td
-                          className="p-2 border text-center align-middle" // Centers horizontally and vertically
-                          style={{ width: "260px" }} // Adjusted width for date column
-                        >
+                        <td className="p-2 border text-center align-middle w-1/5">
                           {news.date}
                         </td>
                         {/* Edit Column */}
-                        <td className="p-2 border text-center align-middle" style={{ width: "100px" }}>
+                        <td className="p-2 border text-center align-middle w-1/5">
                           <Link
                             href={`/news/${news.id}/edit`}
                             className="text-blue-600 hover:underline"
@@ -385,21 +371,23 @@ const NewsPage = () => {
                             <Image
                               src="/editbutton.png"
                               alt="Edit Button"
-                              width={20}
+                              width={25}
                               height={20}
-                              className="inline-block"
+                              className="inline-block transition-transform duration-300 hover:scale-125"
                             />
                           </Link>
                         </td>
+
                         {/* Delete Column */}
-                        <td className="p-2 border">
+                        <td className="p-2 border text-center align-middle w-1/5 pr-[5vh]">
                           <button
                             onClick={() => handleDeleteClick(news.id)}
-                            className="text-red-600 ml-2"
+                            className="text-red-600 hover:underline"
                           >
                             Delete
                           </button>
                         </td>
+
                       </tr>
                     ))}
                   </tbody>
@@ -412,11 +400,21 @@ const NewsPage = () => {
         {/* Popup */}
         {isPopupVisible && (
           <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg w-1/3 p-6">
-              <div className="text-center text-lg font-bold mb-4">
+            <div className="bg-white rounded-lg shadow-lg w-full md:w-[60vh] p-6 text-center">
+              {/* Image at the top */}
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/1214/1214428.png"
+                alt="Delete Icon"
+                className="w-12 h-12 mx-auto mb-4"
+              />
+              
+              {/* Confirmation Text */}
+              <div className="text-lg font-bold">
                 Confirm to delete News ID: {selectedRowId}
               </div>
-              <div className="flex justify-between mt-6">
+              
+              {/* Buttons */}
+              <div className="flex justify-evenly mt-6">
                 <button
                   onClick={handleCancel}
                   className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
@@ -424,15 +422,27 @@ const NewsPage = () => {
                   Cancel
                 </button>
                 <button
-                  onClick={handleConfirm}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                  onClick={isButtonLocked ? undefined : handleConfirm}
+                  disabled={isButtonLocked}
+                  className={`px-4 py-2 w-24 h-10 flex items-center justify-center rounded-lg text-white transition ${
+                    isButtonLocked ? "bg-gray-400 cursor-not-allowed" : "bg-red-500 hover:bg-red-600"
+                  }`}
                 >
-                  Confirm
+                  {isButtonLocked ? (
+                    <img
+                      src="https://i.pinimg.com/474x/43/0f/2d/430f2d8037e7be4f47db6821f812c630.jpg"
+                      alt="Locked"
+                      className="w-6 h-6"
+                    />
+                  ) : (
+                    "Confirm"
+                  )}
                 </button>
               </div>
             </div>
           </div>
         )}
+
       </div>
     </>
   );
