@@ -53,7 +53,8 @@ const EditNewsPage: FC = () => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
-
+  const [modal, setModal] = useState<{ status: string; message: string } | null>(null);
+  const [countdown, setCountdown] = useState(3);
   const [news, setNews] = useState<NewsDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -190,10 +191,14 @@ const EditNewsPage: FC = () => {
           .setLngLat(parsedCoordinates)
           .addTo(map);
   
-        marker.on("dragend", () => {
-          const lngLat = marker.getLngLat();
-          setMarkerCoordinates([lngLat.lat, lngLat.lng]);
-        });
+          marker.on("dragend", () => {
+            const lngLat = marker.getLngLat();
+            setMarkerCoordinates([lngLat.lng, lngLat.lat]);
+            setFormData((prev) => ({
+              ...prev,
+              location: { ...prev.location, coordinates: [lngLat.lng, lngLat.lat] },
+            }));
+          });
   
         return () => map.remove();
       } else {
@@ -303,86 +308,113 @@ const EditNewsPage: FC = () => {
   // };
 
 
-const API_BASE_URL = "http://localhost:8080/api"; // Define your API base URL
 
-const handleSave = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    setNotification({ status: "error", message: "Authentication token is missing" });
-    return;
-  }
 
-  setLoading(true);
-  setError("");
-
-  try {
-
-    const formDataToSend = new FormData();
-    formDataToSend.append("title", formData.title);
-    formDataToSend.append("content", formData.content);
-    formDataToSend.append("location_description", formData.location.description);
-    formDataToSend.append("latitude", markerCoordinates[0].toString());
-    formDataToSend.append("longitude", markerCoordinates[1].toString());
-    formDataToSend.append("type", "news");
-    formDataToSend.append("picture", formData.picture); // Assuming picture URL is in the state
- 
-
-    const response = await axios.patch(`/api/News/${id}/Edit`, formDataToSend, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (response.status !== 200) {
-      const errorData = response.data;
-      console.error("Error Data:", errorData); // Log the error response body
-      throw new Error(errorData.message || "Failed to update news.");
+  const handleSave = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setModal({ status: "error", message: "Authentication token is missing" });
+      return;
     }
-
-    const data = response.data;
-
-    if (data.statusCode === "200") {
-      setNotification({ message: "News updated successfully" });
-      setTimeout(() => {
-        router.push(`/news`);
-      }, 1000);
-    } else {
-      setError(data.statusMessage || "An error occurred while updating the news.");
+  
+    // Check for missing fields
+    if (!formData.title || !formData.content || !formData.location?.description || !formData.picture || !markerCoordinates[0] || !markerCoordinates[1]) {
+      setModal({ status: "error", message: "Unable to save due to missing field" });
+      return;
     }
-  } catch (error: any) {
-    setError(error.message || "An unexpected error occurred.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
-
-  const handleCancel = () => {
-    if (newsData) {
-      // Reset formData and individual state to the original fetched data
-      setFormData({
-        title: newsData.title || "",
-        location: {
-          coordinates: [parseFloat(newsData.location.coordinates[0]), parseFloat(newsData.location.coordinates[1])],
-          description: newsData.location.description || "",
+  
+    setLoading(true);
+    setError("");
+  
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("content", formData.content);
+      formDataToSend.append("location_description", formData.location.description);
+      formDataToSend.append("latitude", markerCoordinates[0].toString());
+      formDataToSend.append("longitude", markerCoordinates[1].toString());
+      formDataToSend.append("type", "news");
+      console.log("Pic Url:", formData.picture); 
+      formDataToSend.append("picture", formData.picture); 
+  
+      const response = await axios.patch(`/api/News/${id}/Edit`, formDataToSend, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-        content: newsData.content || "",
-        picture: newsData.picture || "",
       });
   
-      // Optionally reset individual state (if still used)
-      setTitle(newsData.title);
-      setDescription(newsData.location.description);
-      setContent(newsData.content);
-      setImagePreview(newsData.picture || ""); // Reset image preview
-      setMarkerCoordinates([
-        parseFloat(newsData.location.coordinates[1]),
-        parseFloat(newsData.location.coordinates[0]),
-      ]);
+      if (response.status !== 200) {
+        const errorData = response.data;
+        console.error("Error Data:", errorData); 
+        throw new Error(errorData.message || "Failed to update news.");
+      }
+  
+      const data = response.data;
+  
+      if (data.statusCode === "200") {
+        setModal({ status: "success", message: "News saved successfully" }); 
+        setTimeout(() => router.push("/news"), 1000); // Redirect after 3 seconds
+      } else {
+        setModal({ status: "error", message: data.statusMessage || "An error occurred while updating the news." });
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        setModal({ status: "error", message: error.message || "An unexpected error occurred." });
+      } else {
+        setModal({ status: "error", message: "An unexpected error occurred." });
+      }
+    } finally {
+      setLoading(false);
     }
   };
+  
+
+
+useEffect(() => {
+  if (modal?.status === "success") {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === 1) {
+          clearInterval(timer);
+          setModal(null);
+          router.push("/news"); // Redirect to news page
+        }
+        return prev - 1;
+      });
+    }, 950);
+
+    return () => clearInterval(timer);
+  }
+}, [modal, setModal, router]);
+
+const handleCancel = () => {
+  router.back(); // Navigate to the previous page
+};
+
+  // const handleCancel = () => {
+  //   if (newsData) {
+  //     // Reset formData and individual state to the original fetched data
+  //     setFormData({
+  //       title: newsData.title || "",
+  //       location: {
+  //         coordinates: [parseFloat(newsData.location.coordinates[0]), parseFloat(newsData.location.coordinates[1])],
+  //         description: newsData.location.description || "",
+  //       },
+  //       content: newsData.content || "",
+  //       picture: newsData.picture || "",
+  //     });
+  
+  //     // Optionally reset individual state (if still used)
+  //     setTitle(newsData.title);
+  //     setDescription(newsData.location.description);
+  //     setContent(newsData.content);
+  //     setImagePreview(newsData.picture || ""); // Reset image preview
+  //     setMarkerCoordinates([
+  //       parseFloat(newsData.location.coordinates[1]),
+  //       parseFloat(newsData.location.coordinates[0]),
+  //     ]);
+  //   }
+  // };
   
 
   const handleImageClick = () => {
@@ -462,30 +494,31 @@ const handleSave = async () => {
             </div>
 
             <div className="mt-10 w-[86%] mx-auto">
-              <div className="flex gap-4">
-                <div className="flex-1 -mr-10 relative" ref={imageRef}>
-                  <div className="relative" style={{ width: "70vh", height: "35vh" }}>
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* Image Container */}
+              <div className="flex-1 relative" ref={imageRef}>
+                <div className="relative w-full sm:max-w-[70vh] h-[35vh]">
                   <img
                     src={imagePreview || newsData.picture || "/newsimage.png"}
                     alt="news image"
-                    // fill
-                    className="rounded-lg object-cover"
+                    className="rounded-lg object-cover w-full h-full"
                   />
-                    <div
-                      onClick={handleImageClick}
-                      className="absolute top-0 left-0 w-full h-full bg-black opacity-40 text-white flex items-center justify-center text-xl rounded-lg hover:opacity-70 transition-opacity duration-300 cursor-pointer z-10"
-                    >
-                      <span className="pointer-events-none">Upload New Picture</span>
-                    </div>
+                  <div
+                    onClick={handleImageClick}
+                    className="absolute top-0 left-0 w-full h-full bg-black opacity-40 text-white flex items-center justify-center text-xl rounded-lg hover:opacity-70 transition-opacity duration-300 cursor-pointer z-10"
+                  >
+                    <span className="pointer-events-none">Upload New Picture</span>
                   </div>
                 </div>
-
-                <div
-                  className="w-[45%] h-[35vh]"
-                  ref={mapContainerRef}
-                  style={{ height: "35vh" }}
-                ></div>
               </div>
+
+              {/* Map Container */}
+              <div
+                className="w-full sm:w-[45%] h-[35vh]"
+                ref={mapContainerRef}
+              ></div>
+            </div>
+
 
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="col-span-1">
@@ -493,16 +526,16 @@ const handleSave = async () => {
                     Title:
                   </label>
                   <input
-  name="title"
-  value={formData.title} // Directly use formData.title
-  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-    setFormData((prev) => ({
-      ...prev,
-      title: e.target.value,
-    }))
-  }
-  className="p-2 border rounded-lg w-full"
-  placeholder="Title"
+                    name="title"
+                    value={formData.title} // Directly use formData.title
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        title: e.target.value,
+                      }))
+                    }
+                    className="p-2 border rounded-lg w-full"
+                    placeholder="Title"
                   />
                 </div>
 
@@ -516,19 +549,19 @@ const handleSave = async () => {
                       onPlaceChanged={onPlaceChanged}
                     >
                       <input
-  name="description"
-  value={formData.location.description} // Directly use formData.location.description
-  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-    setFormData((prev) => ({
-      ...prev,
-      location: {
-        ...prev.location,
-        description: e.target.value,
-      },
-    }))
-  }
-  className="p-2 border rounded-lg w-full"
-  placeholder="Enter a Location"
+                        name="description"
+                        value={formData.location.description} // Directly use formData.location.description
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            location: {
+                              ...prev.location,
+                              description: e.target.value,
+                            },
+                          }))
+                        }
+                        className="p-2 border rounded-lg w-full"
+                        placeholder="Enter a Location"
                       />
                     </Autocomplete>
                   )}
@@ -539,17 +572,17 @@ const handleSave = async () => {
                     Content:
                   </label>
                   <textarea
-  name="content"
-  value={formData.content} // Directly use formData.content
-  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    setFormData((prev) => ({
-      ...prev,
-      content: e.target.value,
-    }))
-  }
-  className="p-2 border rounded-lg w-full"
-  placeholder="Content"
-  rows={4}
+                    name="content"
+                    value={formData.content} // Directly use formData.content
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        content: e.target.value,
+                      }))
+                    }
+                    className="p-2 border rounded-lg w-full"
+                    placeholder="Content"
+                    rows={4}
                   />
                 </div>
               </div>
@@ -599,6 +632,44 @@ const handleSave = async () => {
                   </div>
                 </div>
               )}
+
+{modal && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white rounded-lg p-6 shadow-lg w-96 text-center">
+              <div className="flex flex-col items-center">
+                {modal.status === "success" ? (
+                  <>
+                    <img
+                      src="https://icons.veryicon.com/png/o/miscellaneous/8atour/success-35.png"
+                      alt="Success Icon"
+                      className="w-12 h-12 mb-2"
+                    />
+                    <h2 className="text-lg font-semibold text-green-600">Success</h2>
+                    <p className="text-gray-700 mt-2">
+                      Redirecting to news page in a second...<span className="font-bold"></span>
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <img
+                      src="https://static.vecteezy.com/system/resources/previews/026/526/158/non_2x/error-icon-vector.jpg"
+                      alt="Error Icon"
+                      className="w-12 h-12 mb-2"
+                    />
+                    <h2 className="text-lg font-semibold text-red-600">Error</h2>
+                    <p className="text-gray-700 mt-2">{modal.message}</p>
+                    <button
+                      onClick={() => setModal(null)}
+                      className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600"
+                    >
+                      Close
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
             </div>
           </div>
         </div>

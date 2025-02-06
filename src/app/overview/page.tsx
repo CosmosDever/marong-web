@@ -255,7 +255,7 @@ const OverviewPage: FC = (): JSX.Element => {
               date_closed:caseItem.date_closed,
               picture:caseItem.picture,
               picture_done:caseItem.picture_done,
-              status: "Waiting",
+              status: caseItem.status,
             })),
           };
   
@@ -306,7 +306,7 @@ const OverviewPage: FC = (): JSX.Element => {
               case_id: caseItem.case_id,
               category: caseItem.category,
               location: {
-                // Hardcoded coordinates as numbers
+
                 coordinates: caseItem.location.coordinates,
                 description: caseItem.location.description,
               },
@@ -315,7 +315,7 @@ const OverviewPage: FC = (): JSX.Element => {
               date_closed:caseItem.date_closed,
               picture:caseItem.picture,
               picture_done:caseItem.picture_done,
-              status: "Waiting",              
+              status: caseItem.status,              
             })),
           };
   
@@ -444,7 +444,7 @@ const OverviewPage: FC = (): JSX.Element => {
               date_closed:caseItem.date_closed,
               picture:caseItem.picture,
               picture_done:caseItem.picture_done,
-              status: "Done",
+              status: caseItem.status,
             })),
           };
   
@@ -574,33 +574,28 @@ const OverviewPage: FC = (): JSX.Element => {
     // Clear existing markers
     document.querySelectorAll(".mapboxgl-marker").forEach((marker) => marker.remove());
   
-    // Define category colors for markers
-    const categoryColors: Record<string, string> = {
-      "Road Damage": "red",
-      "Damaged Sidewalk": "green",
-      "Wire Damage": "blue",
-      "Overpass Damage": "yellow",
+    // Define category-based markers
+    const markerImages: Record<string, string> = {
+      "Road Damage|Waiting": "../red road marker.png",
+      "Road Damage|InProgress": "../orange road marker.png",
+      "Road Damage|Done": "../green road marker.png",
+      "Wire Damage|Waiting": "../red wire marker.png",
+      "Wire Damage|InProgress": "../orange wire marker.png",
+      "Wire Damage|Done": "../green wire marker.png",
+      "Damaged Sidewalk|Waiting": "../red pavement marker.png",
+      "Damaged Sidewalk|InProgress": "../orange pavement marker.png",
+      "Damaged Sidewalk|Done": "../green pavement marker.png",
+      "Overpass Damage|Waiting": "../red overpass marker.png",
+      "Overpass Damage|InProgress": "../orange overpass marker.png",
+      "Overpass Damage|Done": "../green overpass marker.png",
+      "Damaged Sidewalk|Cancel": "../red cancel marker.png",
+      "Road Damage|Cancel": "../red cancel marker.png",
+      "Wire Damage|Cancel": "../red cancel marker.png",
+      "Overpass Damage|Cancel": "../red cancel marker.png",
     };
   
-    // Filter by category if necessary
-    // let filteredData = mapData;
-    // if (filter !== "All Case") {
-    //   filteredData = filteredData.filter((item) => item.category === filter);
-    //   console.log("Filtered by category:", filteredData);
-    // }
-  
-    // // Filter by status independently
-    // filteredData = filteredData.filter((item) => {
-    //   return (
-    //     (item.status === "Waiting" && currentFilters.showWaiting) ||
-    //     (item.status === "In Progress" && currentFilters.showInProgress) ||
-    //     (item.status === "Done" && currentFilters.showDone)
-    //   );
-    // });
-  
-
     let filteredData = mapData;
-
+  
     if (filter !== "All Case") {
       switch (filter) {
         case "Street":
@@ -619,10 +614,8 @@ const OverviewPage: FC = (): JSX.Element => {
           console.warn("Unknown filter category:", filter);
       }
     }
-    
+  
     console.log("Filtered Data:", filteredData);
-
-
     console.log("Filtered by status:", currentFilters, filteredData);
   
     // Add markers for filtered data
@@ -631,26 +624,40 @@ const OverviewPage: FC = (): JSX.Element => {
         console.warn("Invalid coordinates for marker:", item);
         return;
       }
+       // If status is "Cancel", always use the red cancel marker
+
   
-      const markerColor = categoryColors[item.category] || "gray";
-            // const marker = document.createElement("div");
-      // marker.className = "marker";
-      // marker.style.width = "20px";
-      // marker.style.height = "20px";
-      // marker.style.backgroundColor = markerColor;
-      // marker.style.borderRadius = "50%";
-      // marker.style.cursor = "pointer";
+      const markerKey = `${item.category}|${item.status}`;
+      const markerImage = markerImages[markerKey] || "/images/default-marker.png"; // Fallback marker
+
+      
   
-      const marker = new mapboxgl.Marker({ color: markerColor }) // Set marker color here
-        .setLngLat([parseFloat(item.location.coordinates[1]), parseFloat(item.location.coordinates[0])])
+      // Create custom marker element
+      const markerElement = document.createElement("img");
+      markerElement.src = markerImage;
+      if (markerImage === "../red cancel marker.png") {
+        markerElement.style.width = "28px";
+        markerElement.style.height = "35px";
+      } else {
+        markerElement.style.width = "32px";
+        markerElement.style.height = "45px";
+      }
+      markerElement.style.cursor = "pointer";
+  
+      new mapboxgl.Marker({ element: markerElement })
+        .setLngLat([parseFloat(item.location.coordinates[1]), parseFloat(item.location.coordinates[0])]) // Ensure correct lat/lon order
         .addTo(map)
         .getElement()
         .addEventListener("click", () => {
           setSelectedCaseDetails(item); // Show details when marker is clicked
-          setIsModalOpen(true);         // Open the modal
+          setIsModalOpen(true); // Open the modal
         });
     });
   };
+  
+
+
+  
   
   const handleFilterChange = (filterType: keyof typeof filters, isChecked: boolean) => {
     // Prevent excessive re-rendering
@@ -752,28 +759,33 @@ const OverviewPage: FC = (): JSX.Element => {
           <div className="p-6 flex flex-col h-full">
             <div className="flex items-center justify-between w-[87%] mx-auto">
               <div className="text-3xl font-bold">OVERVIEW</div>
-              <div className="flex items-center">
-                <span className="text-black font-semibold text-lg">{selectedCase}</span>
-                <div className="ml-3 w-20 h-20 bg-[#E8EBF5] flex items-center justify-center rounded-2xl">
-                  {/* <span className="text-gray-800 font-bold text-3xl">{selectedCase === 'All Case' ? allCaseData?.total_all_cases : roadData?.total_all_cases}</span> */}
-                <span className="text-gray-800 font-bold text-3xl">
-                  {selectedCase === 'All Case' ? allCaseData?.total_all_cases :
-                   selectedCase === 'Street' ? roadData?.total_all_cases :
-                   selectedCase === 'Pavement' ? pavementData?.total_all_cases :
-                   selectedCase === 'Overpass' ? overpassData?.total_all_cases :
-                   selectedCase === 'Wire' ? wireData?.total_all_cases : 0}
-                </span>
+                <div className="p-2 bg-white shadow-lg rounded-2xl border border-gray-200 p-[-1vh]">
+                  <div className="flex items-center">
+                    <span className="text-black font-semibold text-2xl ">{selectedCase}</span>
+                    <div className="ml-3 w-20 h-[9vh] bg-[#E8EBF5] flex items-center justify-center rounded-2xl shadow-md border border-gray-300">
+                      <span className="text-gray-800 font-bold text-3xl">
+                        {selectedCase === 'All Case' ? allCaseData?.total_all_cases :
+                        selectedCase === 'Street' ? roadData?.total_all_cases :
+                        selectedCase === 'Pavement' ? pavementData?.total_all_cases :
+                        selectedCase === 'Overpass' ? overpassData?.total_all_cases :
+                        selectedCase === 'Wire' ? wireData?.total_all_cases : 0}
+                      </span>
+                    </div>
                 </div>
               </div>
             </div>
-            <div className="flex flex-col items-center justify-center mt-2 relative">
-              <table className="w-3/5">
+            <div className="flex items-center justify-between mt-2 relative border border-gray-300 rounded-xl shadow-md px-1 py-2 bg-white h-[10vh] w-[120vh] ml-[30vh] z-[1]">
+              <table className="w-full table-fixed border-collapse">
                 <thead>
-                  <tr>
+                  <tr className="divide-x divide-gray-400"> 
                     {["All Case", "Street", "Wire", "Pavement", "Overpass"].map((caseType) => (
                       <th
                         key={caseType}
-                        className={`p-4 text-left text-black font-medium cursor-pointer ${selectedCase === caseType ? "underline decoration-[4px] decoration-[#1B369C]" : ""}`}
+                        className={`p-2 text-center text-black font-medium cursor-pointer text-2xl transition-transform duration-500 ${
+                          selectedCase === caseType
+                            ? "scale-105 font-bold underline decoration-[4px] decoration-[#1B369C]"
+                            : "hover:scale-105"
+                        }`}
                         onClick={() => handleCaseChange(caseType)}
                       >
                         {caseType}
@@ -783,46 +795,49 @@ const OverviewPage: FC = (): JSX.Element => {
                 </thead>
               </table>
             </div>
-            <div className="p-4 bg-[#DEE3F6] flex-1 w-[calc(100%+3.0rem)] -mx-6 -mt-4 -mb-6 rounded-2xl">
-              <div className="flex justify-between items-center w-full h-20">
-                <div className="flex flex-col items-center w-[30%] border-r-2 border-gray-300 -mt-3">
-                  <span className="text-xl font-semibold">Waiting</span>
-                  <span className="text-lg text-gray-700">{allCaseData?.waiting_all_cases}</span>
-                  {/* <label className="flex items-center mt-0">
-                    <input
-                      type="checkbox"
-                      checked={filters.showWaiting}
-                      onChange={(e) => handleFilterChange("showWaiting", e.target.checked)}
-                      className="mr-2"
+
+
+
+
+
+            <div className="p-4 bg-[#DEE3F6] flex-1 w-[calc(100%+3.0rem)] -mx-6 -mt-4 -mb-6 z-[2]">
+              <div className="flex justify-center items-center w-full h-12 ml-5">
+
+                <div className="flex flex-col items-center w-[30%] border-r-2 border-gray-300 -mt-3 relative">
+                  <div className="flex items-center">
+                    <img 
+                      src="../waiting icon.png" 
+                      alt="Waiting Icon" 
+                      className="w-[7vh] h-[7vh] absolute left-[14vh] top-[0vh]" 
                     />
-                    Show Waiting
-                  </label> */}
+                    <span className="text-lg font-semibold ml-[0vh]">Waiting</span>
+                  </div>
+                  <span className="text-base text-gray-700">{allCaseData?.waiting_all_cases}</span>
                 </div>
-                <div className="flex flex-col items-center w-[30%] border-r-2 border-gray-300 -mt-3">
-                  <span className="text-xl font-semibold">In Progress</span>
-                  <span className="text-lg text-gray-700">{allCaseData?.inprogress_all_cases}</span>
-                  {/* <label className="flex items-center mt-0">
-                    <input
-                      type="checkbox"
-                      checked={filters.showInProgress}
-                      onChange={(e) => handleFilterChange("showInProgress", e.target.checked)}
-                      className="mr-2"
+
+
+                <div className="flex flex-col items-center w-[30%] border-r-2 border-gray-300 -mt-3 relative">
+                  <div className="flex items-center">
+                    <img 
+                      src="../in progress icon.png" 
+                      alt="in progress Icon" 
+                      className="w-[7vh] h-[7vh] absolute left-[13vh] top-[0vh]" 
                     />
-                    Show In Progress
-                  </label> */}
+                    <span className="text-lg font-semibold">In Progress</span>
+                  </div>
+                  <span className="text-base text-gray-700">{allCaseData?.inprogress_all_cases}</span>
                 </div>
-                <div className="flex flex-col items-center w-[30%] -mt-3">
-                  <span className="text-xl font-semibold">Done</span>
-                  <span className="text-lg text-gray-700">{allCaseData?.done_all_case}</span>
-                  {/* <label className="flex items-center mt-0">
-                    <input
-                      type="checkbox"
-                      checked={filters.showDone}
-                      onChange={(e) => handleFilterChange("showDone", e.target.checked)}
-                      className="mr-2"
-                    />
-                    Show Done
-                  </label> */}
+                
+                <div className="flex flex-col items-center w-[30%] -mt-3 relative">
+                  <div className="flex items-center">
+                      <img 
+                        src="../done icon.png" 
+                        alt="done Icon" 
+                        className="w-[7vh] h-[7vh] absolute left-[16vh] top-[0vh]" 
+                      />
+                    <span className="text-lg font-semibold">Done</span>
+                  </div>
+                  <span className="text-base text-gray-700">{allCaseData?.done_all_case}</span>
                 </div>
                 {/* <div className="flex flex-col items-center w-[30%] border-r-2 border-gray-300">
                   <span className="text-xl font-semibold">In Progress</span>
@@ -833,7 +848,7 @@ const OverviewPage: FC = (): JSX.Element => {
                   <span className="text-lg text-gray-700">{caseData?.done}</span>
                 </div> */}
               </div>
-              <div ref={mapContainerRef} className="w-full h-full rounded-xl h-[88%]" />
+              <div ref={mapContainerRef} className="w-full h-full rounded-xl h-[89.9%] mb-[-50vh]" />
             </div>
           </div>
         </div>
