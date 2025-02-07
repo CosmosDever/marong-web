@@ -28,6 +28,17 @@ export default function LoginPage() {
         e.preventDefault();
         setErrorMessage("");
     
+        if (!gmail && !password) {
+            setErrorMessage("Please enter gmail and password");
+            return;
+        } else if (!gmail) {
+            setErrorMessage("Please enter gmail");
+            return;
+        } else if (!password) {
+            setErrorMessage("Please enter password");
+            return;
+        }
+    
         try {
             const response = await fetch("http://localhost:8080/api/auth/login", {
                 method: "POST",
@@ -39,14 +50,13 @@ export default function LoginPage() {
     
             if (!response.ok) {
                 if (response.status === 401) {
-                    throw new Error("Invalid username or password");
+                    throw new Error("Invalid gmail or password");
                 } else {
                     throw new Error("An error occurred while logging in.");
                 }
             }
     
             const data = await response.json();
-    
             const token = extractToken(data);
             if (token) {
                 setToken(token);
@@ -64,7 +74,6 @@ export default function LoginPage() {
                 }
     
                 const userData = await userResponse.json();
-    
                 if (userData.statusCode === "200") {
                     const { roles } = userData.data;
                     const roleNameMatch = roles.match(/name=ROLE_(.+)\)/);
@@ -85,6 +94,7 @@ export default function LoginPage() {
             setErrorMessage(error.message || "An error occurred. Please try again.");
         }
     };
+    ;
     
     
     return (
