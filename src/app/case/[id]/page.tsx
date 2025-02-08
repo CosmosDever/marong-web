@@ -141,13 +141,13 @@ const CaseById: React.FC = () => {
                 <span
                   className={`font-normal ${
                     cases?.[0]?.status === "InProgress"
-                      ? "text-blue-500"
+                      ? "text-[#ff8000]"
                       : cases?.[0]?.status === "Waiting"
-                      ? "text-yellow-500"
+                      ? "text-[#e40513]"
                       : cases?.[0]?.status === "Done"
-                      ? "text-blue-500"
+                      ? "text-[#247d26]"
                       : cases?.[0]?.status === "Cancel"
-                      ? "text-red-500"
+                      ? "text-#e40513]"
                       : "text-black"
                   }`}
                 >
