@@ -182,8 +182,8 @@ export default function AddAdmin() {
                   <label className="block text-gray-700 font-medium mb-2">First Name</label>
                   <input
                     type="text"
-                    name="firstNameBox"
-                    id="addFirstName"
+                    name="firstName"
+                    id="addFirstNameBox"
                     value={formData.firstName}
                     onChange={handleChange}
                     required
