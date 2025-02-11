@@ -227,14 +227,14 @@ export default function AdminPage() {
             <div className="flex justify-between">
               <button
                 onClick={handleCancelDelete}
-                id="canceldeleteadmin"
+                id="canceldeleteadminButton"
                 className="bg-gray-300 text-black py-2 px-4 rounded-lg hover:bg-gray-200"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
-                id="confirmdeleteadmin"
+                id="confirmdeleteadminButton"
                 className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-500"
               >
                 Delete
