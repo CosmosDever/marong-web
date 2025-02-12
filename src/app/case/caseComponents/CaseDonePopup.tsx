@@ -37,12 +37,13 @@ const DonePopup: React.FC<PopupProps> = ({
         <p>{message}</p>
         <form>
           <textarea
+          id="DoneDetailBox"
             className="my-[2vh] px-[1vw] py-[.5vh] w-full h-[20vh] text-wrap border-black border-2"
             placeholder="Detail.."
             value={detailDone}
             onChange={(e) => setDetailDone(e.target.value)}
           ></textarea>
-          <input type="file" accept="image/*" onChange={handleImageChange} />
+          <input id="DonePictureBox" type="file" accept="image/*" onChange={handleImageChange} />
         </form>
         {imageDone && (
           <img
@@ -53,6 +54,7 @@ const DonePopup: React.FC<PopupProps> = ({
         )}
         <div className="flex justify-around mt-5">
           <button
+          id="RevokeDone btn"
             onClick={onCancel}
             className="px-6 py-2 bg-red-500 text-white rounded-lg hover:opacity-80"
             type="submit"
@@ -60,6 +62,7 @@ const DonePopup: React.FC<PopupProps> = ({
             Cancel
           </button>
           <button
+          id="SubmitDone btn"
             onClick={onSubmit}
             className="px-6 py-2 bg-green-500 text-white rounded-lg hover:opacity-80"
             type="submit"

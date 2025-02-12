@@ -100,7 +100,7 @@ export default function LoginPage() {
                         <input
                             className="peer block w-full px-3 pt-5 pb-2 bg-blue-100 rounded-lg border border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                             type="text"
-                            id="gmail"
+                            id="login_gmailBox"
                             placeholder=" "
                             value={gmail}
                             onChange={(e) => setGmail(e.target.value)}
@@ -117,7 +117,7 @@ export default function LoginPage() {
                         <input
                             className="peer block w-full px-3 pt-5 pb-2 bg-blue-100 rounded-lg border border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                             type="password"
-                            id="password"
+                            id="login_passwordBox"
                             placeholder=" "
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -132,6 +132,7 @@ export default function LoginPage() {
 
                     <button
                         type="submit"
+                        id="loginButton"
                         className="w-full bg-blue-500 hover:bg-blue-700 p-2 text-white rounded-lg mt-4"
                     >
                         Login

@@ -30,7 +30,7 @@ export async function updateCancel(detailCancel: string, id: string) {
   if (detailCancel) {
     const response = {
       status: "success",
-      message: "Case status updated to 'Cancelled' successfully.",
+      message: "Case status updated to 'Cancel' successfully.",
       data: {
         case_id: id,
         status: "Cancelled",
@@ -59,7 +59,6 @@ export async function postInProgress(detail: string, id: string) {
       message: "'Detail' are required when changing status to 'in progress'.",
     };
 
-    alert("'Detail' are required when changing status to 'in progress'");
     Swal.fire({
       icon: "error",
       title: "Oops...",
@@ -73,7 +72,7 @@ export async function postInProgress(detail: string, id: string) {
   if (detail) {
     const response = {
       status: "success",
-      message: "Case status updated successfully.",
+      message: "Case status updated to 'InProgress' successfully.",
       data: {
         case_id: id,
         status: "In Progress",
@@ -261,7 +260,7 @@ const CaseControl: React.FC = () => {
       try {
         const response = await postDone(detailDone, imageDone, id);
 
-        if (response && detailDone) {
+        if (response && detailDone && imageDone) {
           const post_done = async () => {
             if (!token) return;
             try {
@@ -312,14 +311,18 @@ const CaseControl: React.FC = () => {
   const handleCancel = () => {
     console.log("Action Cancelled!");
     setIsCancelPopupVisible(false);
+    setDetailCancel("");
     setIsInProgressPopupVisible(false);
+    setDetailInProgress("");
     setIsDonePopupVisible(false);
+    setDetailDone("");
+    setImageDone("");
   };
 
   return (
     <>
       {(status === "Waiting" || status === "InProgress") && (
-  <div className="z-10 w-[20vw] h-[12vh] fixed bottom-10 right-7 flex justify-evenly items-center bg-lightblue-bg rounded-xl">
+  <div id="caseControl" className="z-10 w-[20vw] h-[12vh] fixed bottom-10 right-7 flex justify-evenly items-center bg-lightblue-bg rounded-xl">
     {/* Cancel operation */}
     <button
     id="Cancel btn"
@@ -332,7 +335,7 @@ const CaseControl: React.FC = () => {
     {/* Mark as In Progress */}
     {status === "Waiting" && (
       <button
-        id="In progress btn"
+        id="InProgress btn"
         onClick={() => togglePopup("inProgress")}
         className="w-[8vw] h-[8vh] border-black border-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-800"
       >

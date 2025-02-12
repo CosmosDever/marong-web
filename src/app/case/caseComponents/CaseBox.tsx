@@ -149,7 +149,17 @@ const CaseBox: React.FC = () => {
                   <p className="">
                     {new Date(item.dateOpened).toLocaleDateString("en-GB")}
                   </p>
-                  <p className="pl-[2vw]">{item.status}</p>
+                  <p className={`font-normal pl=[2vw] ${
+                    item.status === "InProgress"
+                      ? "text-[#ff8000]"
+                      : item.status === "Waiting"
+                      ? "text-[#e40513]"
+                      : item.status === "Done"
+                      ? "text-[#247d26]"
+                      : item.status === "Cancel"
+                      ? "text-[#e40513]"
+                      : "text-black"
+                  }`} id="caseStatus">{item.status}</p>
                 </div>
               </div>
             </Link>

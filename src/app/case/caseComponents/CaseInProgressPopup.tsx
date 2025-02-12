@@ -20,6 +20,7 @@ const InProgressPopup: React.FC<PopupProps> = ({
         <p>{message}</p>
         <form>
           <textarea
+          id="InProgressDetailBox"
             className="my-[2vh] px-[1vw] py-[.5vh] w-full h-[20vh] text-wrap border-black border-2"
             placeholder="Type anything to confirm.."
             value={detail}
@@ -28,6 +29,7 @@ const InProgressPopup: React.FC<PopupProps> = ({
         </form>
         <div className="flex justify-around mt-5">
           <button
+          id="RevokeInProgress btn"
             onClick={onCancel}
             className="px-6 py-2 bg-red-500 text-white rounded-lg hover:opacity-80"
             type="submit"
@@ -35,6 +37,7 @@ const InProgressPopup: React.FC<PopupProps> = ({
             Cancel
           </button>
           <button
+          id="SubmitInProgress btn"
             onClick={onSubmit}
             className="px-6 py-2 bg-green-500 text-white rounded-lg hover:opacity-80"
             type="submit"
