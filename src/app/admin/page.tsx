@@ -5,6 +5,7 @@ import Link from "next/link";
 import Sidebar from "../component/sidebar";
 import UserCard from "../component/admincard";
 import Image from "next/image";
+import Swal from "sweetalert2";
 
 
 interface User {
@@ -26,9 +27,6 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-  const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
   const router = useRouter();
   const [adminData, setadminData] = useState({
     roles: "",
@@ -38,13 +36,13 @@ export default function AdminPage() {
   useEffect(() => {
     const fetchUsers = async () => {
       const token = localStorage.getItem("token");
-
+    
       if (!token) {
         setError("Please log in to continue.");
         setLoading(false);
         return;
       }
-
+    
       try {
         const response = await fetch("http://localhost:8080/api/admin/all", {
           method: "GET",
@@ -53,12 +51,19 @@ export default function AdminPage() {
             "Authorization": `Bearer ${token}`,
           }
         });
-
+    
         if (!response.ok) {
           throw new Error(`Error: ${response.statusText}`);
         }
-
-        const data = await response.json();
+    
+        const text = await response.text();
+    
+        if (!text) {
+          throw new Error("API returned empty response");
+        }
+    
+        const data = JSON.parse(text); // แปลง JSON เองแทนการใช้ response.json()
+    
         if (data.status === "success") {
           const formattedUsers = data.data.map((user: any) => ({
             id: user.id,
@@ -71,12 +76,12 @@ export default function AdminPage() {
           throw new Error("Failed to load users");
         }
       } catch (err: any) {
+        console.error("Fetch error:", err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    
 
     fetchUsers();
   }, []);
@@ -125,50 +130,92 @@ export default function AdminPage() {
 
 
   const handleDeleteClick = (id: number, name: string) => {
-    setSelectedUserId(id);
-    setSelectedUserName(name);
-    setShowConfirmPopup(true);
+    Swal.fire({
+  title: "Are you sure?",
+  text: "Do you want to delete this account?",
+  icon: "warning",
+  showCancelButton: true,
+  confirmButtonColor: "#d33",
+  cancelButtonColor: "#3085d6",
+  confirmButtonText: "Yes, delete it!",
+  cancelButtonText: "Cancel",
+  customClass: {
+    confirmButton: "confirm-delete-btn",
+    cancelButton: "cancel-delete-btn",
+  },
+  didOpen: () => {
+    document.querySelector(".confirm-delete-btn")?.setAttribute("id", "confirmDeleteButton");
+    document.querySelector(".cancel-delete-btn")?.setAttribute("id", "cancelDeleteButton");
+  }
+}).then((result) => {
+  if (result.isConfirmed) {
+    handleConfirmDelete(id);
+  }
+});
   };
-
-  const handleConfirmDelete = async () => {
-    if (selectedUserId !== null) {
-      const token = localStorage.getItem("token");
   
-      if (!token) {
-        setError("Please log in to continue.");
-        return;
+  const handleConfirmDelete = async (id: number) => {
+    const token = localStorage.getItem("token");
+  
+    if (!token) {
+      Swal.fire("Error", "Please log in to continue.", "error");
+      return;
+    }
+  
+    if (id === parseInt(adminData.id)) {
+      Swal.fire({
+        title: "Error",
+        text: "You cannot delete currently active Account.",
+        icon: "error",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#3085d6",
+        customClass: {
+          confirmButton: 'okButton'
+        },
+        didOpen: () => {
+          document.querySelector(".okButton")?.setAttribute("id", "okButton");
+        }
+      });
+      return;
+    }
+  
+    try {
+      const response = await fetch(`http://localhost:8080/api/admin/${id}/delete`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to delete the admin");
       }
   
-      try {
-        const response = await fetch(`http://localhost:8080/api/admin/${selectedUserId}/delete`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
+      const data = await response.json();
+      if (data.status === "success") {
+        setUsers(users.filter((user) => user.id !== id));
+        Swal.fire({
+          title: "Deleted",
+          text: "Account has been successfully deleted.",
+          icon: "success",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#3085d6",
+          customClass: {
+            confirmButton: 'okButton'
           },
+          didOpen: () => {
+            document.querySelector(".okButton")?.setAttribute("id", "okButton");
+          }
         });
-  
-        if (!response.ok) {
-          throw new Error("Failed to delete the admin");
-        }
-  
-        const data = await response.json();
-        if (data.status === "success") {
-          setUsers(users.filter((user) => user.id !== selectedUserId));
-          setShowConfirmPopup(false);
-        } else {
-          throw new Error("Failed to delete the admin");
-        }
-      } catch (err: any) {
-        setError(err.message); 
+      } else {
+        throw new Error("Failed to delete the admin");
       }
+    } catch (err: any) {
+      Swal.fire("Error", err.message, "error");
     }
   };
   
-
-  const handleCancelDelete = () => {
-    setShowConfirmPopup(false);
-  };
 
   const handleCardClick = (id: number) => {
     router.push(`/admin/adminprofile/${id}`);
@@ -178,14 +225,14 @@ export default function AdminPage() {
   if (error) return <ErrorComponent message={error} />;
 
   return (
-    <div className="bg-blue-100 flex h-screen text-black overflow-auto">
+    <div className="bg-[#dee3f6] flex h-screen text-black overflow-auto">
       <Sidebar />
       <div className="flex-1 flex flex-col h-full">
         <div className="bg-white p-6 shadow-md">
         <div className="flex items-center justify-between mx-auto w-[90%]">
           <div className="text-3xl font-bold">ADMIN MANAGEMENT</div>
           {adminData.roles === "master Admin" && (
-            <Link href="/admin/add" className="text-blue-600 flex items-center">
+            <Link href="/admin/add" className="text-blue-600 flex items-center" id="add_adminButton">
               <Image src="/Addbtn.png" alt="Add Admin" width={30} height={30} className="mr-2" />
               <span className="translate-y-1">Add Admin</span>
             </Link>
@@ -207,40 +254,20 @@ export default function AdminPage() {
         {/* Card Container */}
         <div className="mt-4 w-[90%] mx-auto h-[calc(100vh-200px)] overflow-y-auto">
           <div className="grid grid-cols-1 gap-4">
-            {users.map((user) => (
-              <UserCard
-                key={user.id}
-                user={user}
-                onDelete={() => handleDeleteClick(user.id, user.name)}
-                onClick={() => handleCardClick(user.id)}
-              />
-            ))}
+            {users
+              .filter((user) => user.id && user.name && user.role && user.picture) // ตรวจสอบว่ามีข้อมูลครบ
+              .map((user) => (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  onDelete={() => handleDeleteClick(user.id, user.name)}
+                  onClick={() => handleCardClick(user.id)}
+                />
+              ))}
           </div>
         </div>
       </div>
-
-      {/* Confirm Delete Popup */}
-      {showConfirmPopup && selectedUserName && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[300px] text-left transition-transform transform scale-100">
-            <div className="text-lg mb-4">Confirm to delete Admin Name: {selectedUserName}</div>
-            <div className="flex justify-between">
-              <button
-                onClick={handleCancelDelete}
-                className="bg-gray-300 text-black py-2 px-4 rounded-lg hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-500"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
+

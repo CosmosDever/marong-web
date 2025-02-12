@@ -28,6 +28,17 @@ export default function LoginPage() {
         e.preventDefault();
         setErrorMessage("");
     
+        if (!gmail && !password) {
+            setErrorMessage("Please enter gmail and password");
+            return;
+        } else if (!gmail) {
+            setErrorMessage("Please enter gmail");
+            return;
+        } else if (!password) {
+            setErrorMessage("Please enter password");
+            return;
+        }
+    
         try {
             const response = await fetch("http://localhost:8080/api/auth/login", {
                 method: "POST",
@@ -39,14 +50,13 @@ export default function LoginPage() {
     
             if (!response.ok) {
                 if (response.status === 401) {
-                    throw new Error("Unauthorized: Invalid credentials");
+                    throw new Error("Invalid gmail or password");
                 } else {
                     throw new Error("An error occurred while logging in.");
                 }
             }
     
             const data = await response.json();
-    
             const token = extractToken(data);
             if (token) {
                 setToken(token);
@@ -64,7 +74,6 @@ export default function LoginPage() {
                 }
     
                 const userData = await userResponse.json();
-    
                 if (userData.statusCode === "200") {
                     const { roles } = userData.data;
                     const roleNameMatch = roles.match(/name=ROLE_(.+)\)/);
@@ -85,6 +94,7 @@ export default function LoginPage() {
             setErrorMessage(error.message || "An error occurred. Please try again.");
         }
     };
+    ;
     
     
     return (
@@ -100,7 +110,7 @@ export default function LoginPage() {
                         <input
                             className="peer block w-full px-3 pt-5 pb-2 bg-blue-100 rounded-lg border border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                             type="text"
-                            id="gmail"
+                            id="login_gmailBox"
                             placeholder=" "
                             value={gmail}
                             onChange={(e) => setGmail(e.target.value)}
@@ -117,7 +127,7 @@ export default function LoginPage() {
                         <input
                             className="peer block w-full px-3 pt-5 pb-2 bg-blue-100 rounded-lg border border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                             type="password"
-                            id="password"
+                            id="login_passwordBox"
                             placeholder=" "
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -132,6 +142,7 @@ export default function LoginPage() {
 
                     <button
                         type="submit"
+                        id="loginButton"
                         className="w-full bg-blue-500 hover:bg-blue-700 p-2 text-white rounded-lg mt-4"
                     >
                         Login

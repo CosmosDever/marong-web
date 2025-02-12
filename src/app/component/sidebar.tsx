@@ -4,6 +4,7 @@ import { FC, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { id } from "date-fns/locale";
 
 const Sidebar: FC = () => {
   const currentPath = usePathname();
@@ -68,10 +69,10 @@ const Sidebar: FC = () => {
   };
 
   const sidebarItems = [
-    { name: "Overview", route: "/overview" },
-    { name: "Case", route: "/case" },
-    { name: "News", route: "/news" },
-    { name: "Admin management", route: "/admin" },
+    { name: "Overview", route: "/overview" ,id: "goto_overviewpageButton" },
+    { name: "Case", route: "/case", id: "goto_casepageButton" },
+    { name: "News", route: "/news", id: "goto_newspageButton" },
+    { name: "Admin management", route: "/admin", id: "goto_adminpageButton" },
   ];
 
   const isActive = (route: string) => currentPath.startsWith(route);
@@ -92,9 +93,10 @@ const Sidebar: FC = () => {
         <div className="w-full h-[90vh] grid justify-between ">
           <div className="mt-4">
             <ul>
-              {sidebarItems.map(({ name, route }) => (
+              {sidebarItems.map(({ name, route, id }) => (
                 <Link href={route} key={name}>
                   <li
+                  id={id}
                     className={`flex items-center ml-2 py-2 px-4 rounded-lg cursor-pointer ${
                       isActive(route)
                         ? "bg-blue-200 text-blue-800"
@@ -123,7 +125,7 @@ const Sidebar: FC = () => {
             </ul>
           </div>
           <div className="flex flex-col justify-end w-full p-4 mb-[2vh]" >
-            <div className="flex items-center" onClick={() => handleCardClick()}>
+            <div className="flex items-center" onClick={() => handleCardClick()} id ="myProfileButton">
               <img
                 src={userData.picture}
                 alt="admin profile picture"
@@ -136,7 +138,7 @@ const Sidebar: FC = () => {
                 <div className="text-gray-500 text-sm">{userData.roles || "Role"}</div>
                 </div>
             </div>
-            <div className="flex items-center mt-3 py-2 rounded-lg group hover:bg-blue-100 ">
+            <div className="flex items-center mt-3 py-2 rounded-lg group hover:bg-blue-100 " id ="logoutButton" >
               <Image
                 src="/Logout.png"
                 alt="logout icon"

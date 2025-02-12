@@ -5,15 +5,15 @@ import Sidebar from "../../component/sidebar";
 import { uploadImage } from "../../component/imageUpload";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-
+import Swal from "sweetalert2";
 
 export default function AddAdmin() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [imagePreview, setImagePreview] = useState("");
   const [formData, setFormData] = useState({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     gmail: "",
     picture: "",
     password: "",
@@ -37,44 +37,78 @@ export default function AddAdmin() {
     const file = event.target.files ? event.target.files[0] : null;
     if (file) {
       if (!file.type.startsWith("image/")) {
-        setErrorMessage("โปรดเลือกไฟล์รูปภาพที่ถูกต้อง");
+        setErrorMessage("Please select a valid image file");
         return;
       }
-  
+
       setImagePreview(URL.createObjectURL(file));
       setFormData({ ...formData, picture: file });
     }
   };
-  
+
   const handleSubmit = async (event: any) => {
     event.preventDefault();
   
     const token = localStorage.getItem("token");
     if (!token) {
-      setErrorMessage("กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ");
+      Swal.fire("Notification", "Please log in to continue", "warning");
       window.location.href = "/login";
       return;
     }
+
+    if (
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.gmail ||
+      !formData.password ||
+      !formData.confirmPassword ||
+      !formData.birthday ||
+      !formData.telephone ||
+      !formData.gender ||
+      !formData.role
+    ) {
+      Swal.fire({
+        title: "Warning",
+        html: `Please fill in all required fields`,
+        icon: "warning",
+        confirmButtonText: "OK",
+        customClass: {
+          confirmButton: 'okButton'
+        },
+        didOpen: () => {
+          document.querySelector(".okButton")?.setAttribute("id", "okButton");
+        }
+        });
+        return;
+    }
   
     if (formData.password !== formData.confirmPassword) {
-      setErrorMessage("รหัสผ่านไม่ตรงกัน");
+      Swal.fire({
+      title: "Warning",
+      html: `Passwords do not match`,
+      icon: "error",
+      confirmButtonText: "OK",
+      customClass: {
+        confirmButton: 'okButton'
+      },
+      didOpen: () => {
+        document.querySelector(".okButton")?.setAttribute("id", "okButton");
+      }
+      });
       return;
     }
   
     try {
       setLoading(true);
-      setErrorMessage("");
-      setSuccessMessage("");
   
       let pictureURL = "";
-  
       if (formData.picture) {
         const file = formData.picture as unknown as File;
-        pictureURL = await uploadImage(file); 
+        pictureURL = await uploadImage(file);
       }
   
       const requestBody = {
-        fullName: formData.fullName,
+        fullName: `${formData.firstName} ${formData.lastName}`,
         gmail: formData.gmail,
         picture: pictureURL,
         password: formData.password,
@@ -96,25 +130,30 @@ export default function AddAdmin() {
       );
   
       if (response?.data?.status === "success") {
-        const { id, full_name, gmail, role } = response.data.data;
-        setSuccessMessage(
-          `เพิ่มบัญชีสำเร็จ: ID: ${id}, Name: ${full_name}, Email: ${gmail}, Role: ${role}`
-        );
-  
-        setTimeout(() => {
+        const { id, fullName, gmail, role } = response.data.data;
+        Swal.fire({
+          title: "Account added successfully!",
+          html: `ID: ${id}<br>Name: ${fullName}<br>Email: ${gmail}<br>Role: ${role}`,
+          icon: "success",
+          confirmButtonText: "OK",
+          customClass: {
+            confirmButton: 'okButton'
+          },
+          didOpen: () => {
+            document.querySelector(".okButton")?.setAttribute("id", "okButton");
+          }
+        }).then(() => {
           router.back();
         });
       } else {
         throw new Error(response?.data?.message || "ไม่สามารถเพิ่มบัญชีได้");
       }
     } catch (err: any) {
-      console.error("Error:", err);
-      setErrorMessage(err.response?.data?.message || "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์");
+      Swal.fire("เกิดข้อผิดพลาด", err.response?.data?.message || "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์", "error");
     } finally {
       setLoading(false);
     }
   };
-  
 
   const handleChange = (event: any) => {
     const { name, value } = event.target;
@@ -124,8 +163,6 @@ export default function AddAdmin() {
   const handleCancel = () => {
     router.back();
   };
-
-
 
   return (
     <div className="flex bg-blue-100 h-screen text-black">
@@ -140,31 +177,30 @@ export default function AddAdmin() {
           {errorMessage && (
             <div className="text-red-500 text-sm mb-4">{errorMessage}</div>
           )}
-          {successMessage && (
-            <div className="text-green-500 text-sm mb-4">{successMessage}</div>
-          )}
-
           <div className="mb-4 flex items-start">
             <div className="relative">
-              {imagePreview ? (
-                <img
-                  src={imagePreview}
-                  alt="Profile Preview"
-                  className="w-24 h-24 object-cover rounded-full border-2 border-blue-500"
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-full bg-gray-200 border-2 border-blue-500 flex items-center justify-center">
-                  <span className="text-gray-500">No Image</span>
-                </div>
-              )}
-              <label className="absolute bottom-0 right-0 bg-blue-500 p-1 rounded-full cursor-pointer">
+              <label className="cursor-pointer" id="addProfileImageButton">
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Profile Preview"
+                    className="w-24 h-24 object-cover rounded-full border-2 border-blue-500"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-gray-200 border-2 border-blue-500 flex items-center justify-center">
+                    <span className="text-gray-500">No Image</span>
+                  </div>
+                )}
                 <input
                   type="file"
                   name="picture"
                   accept="image/*"
                   onChange={handleFileChange}
                   className="hidden"
+                  required
                 />
+              </label>
+              <label className="absolute bottom-0 right-0 bg-blue-500 p-1 rounded-full cursor-pointer">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-4 w-4 text-white"
@@ -177,38 +213,99 @@ export default function AddAdmin() {
             </div>
 
             <div className="flex-1 ml-6">
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-2">Full Name</label>
-                <input
-                  type="text"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded-md px-4 py-2"
-                />
+              <div className="flex space-x-4">
+                <div className="mb-4 w-1/2">
+                  <label className="block text-gray-700 font-medium mb-2">First Name</label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    id="addFirstNameBox"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-gray-300 rounded-md px-4 py-2"
+                  />
+                </div>
+                <div className="mb-4 w-1/2">
+                  <label className="block text-gray-700 font-medium mb-2">Last Name</label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    id="addLastNameBox"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-gray-300 rounded-md px-4 py-2"
+                  />
+                </div>
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-2">Email</label>
-                <input
-                  type="email"
-                  name="gmail"
-                  value={formData.gmail}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded-md px-4 py-2"
-                />
+              <div className="flex space-x-4">
+                <div className="mb-4 w-1/2">
+                  <label className="block text-gray-700 font-medium mb-2">Email</label>
+                    <input
+                      type="email"
+                      name="gmail"
+                      id="addGmailBox"
+                      value={formData.gmail}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-md px-4 py-2"
+                    />
+                </div>
+                <div className="mb-4 w-1/2">
+                  <label className="block text-gray-700 font-medium mb-2">Telephone</label>
+                    <input
+                      type="text"
+                      name="telephone"
+                      id="addTelephoneBox"
+                      value={formData.telephone}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-md px-4 py-2"
+                    />
+                </div>
+              </div>
+              <div className="flex space-x-4">
+                <div className="mb-4 w-1/2">
+                  <label className="block text-gray-700 font-medium mb-2">Birthday</label>
+                    <input
+                      type="date"
+                      name="birthday"
+                      id="addBirthdayBox"
+                      value={formData.birthday}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-md px-4 py-2"
+                    />
+                </div>
+                <div className="mb-4 w-1/2">
+                  <label className="block text-gray-700 font-medium mb-2">Gender</label>
+                    <select
+                      name="gender"
+                      id="addGenderDropdown"
+                      value={formData.gender}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-md px-4 py-2"
+                    >
+                      <option value="" disabled>Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                </div>
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700 font-medium mb-2">Role</label>
                 <select
                   name="role"
+                  id="addARoleDropdown"
                   value={formData.role}
                   onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-md px-4 py-2"
                 >
-                   <option value="" disabled>Select Role</option>
+                  <option value="" disabled>Select Role</option>
                   <option value="master Admin">Master Admin</option>
                   <option value="Admin">Admin</option>
                 </select>
@@ -218,6 +315,7 @@ export default function AddAdmin() {
                 <input
                   type="password"
                   name="password"
+                  id="addPasswordBox"
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -229,55 +327,20 @@ export default function AddAdmin() {
                 <input
                   type="password"
                   name="confirmPassword"
+                  id="addConfirmPasswordBox"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-md px-4 py-2"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-2">Birthday</label>
-                <input
-                  type="date"
-                  name="birthday"
-                  value={formData.birthday}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded-md px-4 py-2"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-2">Telephone</label>
-                <input
-                  type="text"
-                  name="telephone"
-                  value={formData.telephone}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded-md px-4 py-2"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 font-medium mb-2">Gender</label>
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded-md px-4 py-2"
-                >
-                  <option value="" disabled>Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
             </div>
           </div>
           <div className="text-right space-x-4">
-          <button
+            <button
               type="button"
               onClick={handleCancel}
+              id="cancelAddAdminButton"
               className="mt-10 py-2 px-6 text-sm text-white bg-gray-500 hover:bg-gray-700 rounded-lg"
             >
               Cancel
@@ -285,6 +348,7 @@ export default function AddAdmin() {
             <button
               type="submit"
               disabled={loading}
+              id="confirmaddAdminButton"
               className={`py-2 px-6 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-700 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {loading ? "Processing..." : "Add Admin"}

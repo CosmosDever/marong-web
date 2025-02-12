@@ -69,12 +69,12 @@ const UserCard: React.FC<UserCardProps> = ({ user, onDelete, onClick }) => {
   return (
     <div
       className="bg-white p-4 flex items-center rounded-lg shadow-md text-lg hover:bg-blue-200 cursor-pointer"
+      id={`admincard-id-${user.id}`}
       onClick={onClick}
     >
       <div className="w-1/4 text-left">
-        {/* ใช้แท็ก <img> แทน */}
         <img
-          src={user.picture} // ใช้ picture จากฐานข้อมูล
+          src={user.picture}
           alt={user.name}
           width={90}
           height={90}
@@ -91,6 +91,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onDelete, onClick }) => {
               onDelete(user.id);
             }}
             className="text-red-600 hover:underline"
+            id="deleteadminButton"
           >
             Delete
           </button>
