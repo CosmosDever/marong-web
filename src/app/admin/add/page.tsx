@@ -5,11 +5,11 @@ import Sidebar from "../../component/sidebar";
 import { uploadImage } from "../../component/imageUpload";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
 export default function AddAdmin() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [imagePreview, setImagePreview] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
@@ -37,7 +37,7 @@ export default function AddAdmin() {
     const file = event.target.files ? event.target.files[0] : null;
     if (file) {
       if (!file.type.startsWith("image/")) {
-        setErrorMessage("โปรดเลือกไฟล์รูปภาพที่ถูกต้อง");
+        setErrorMessage("Please select a valid image file");
         return;
       }
 
@@ -48,31 +48,65 @@ export default function AddAdmin() {
 
   const handleSubmit = async (event: any) => {
     event.preventDefault();
-
+  
     const token = localStorage.getItem("token");
     if (!token) {
-      setErrorMessage("กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ");
+      Swal.fire("Notification", "Please log in to continue", "warning");
       window.location.href = "/login";
       return;
     }
 
+    if (
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.gmail ||
+      !formData.password ||
+      !formData.confirmPassword ||
+      !formData.birthday ||
+      !formData.telephone ||
+      !formData.gender ||
+      !formData.role
+    ) {
+      Swal.fire({
+        title: "Warning",
+        html: `Please fill in all required fields`,
+        icon: "warning",
+        confirmButtonText: "OK",
+        customClass: {
+          confirmButton: 'okButton'
+        },
+        didOpen: () => {
+          document.querySelector(".okButton")?.setAttribute("id", "okButton");
+        }
+        });
+        return;
+    }
+  
     if (formData.password !== formData.confirmPassword) {
-      setErrorMessage("รหัสผ่านไม่ตรงกัน");
+      Swal.fire({
+      title: "Warning",
+      html: `Passwords do not match`,
+      icon: "error",
+      confirmButtonText: "OK",
+      customClass: {
+        confirmButton: 'okButton'
+      },
+      didOpen: () => {
+        document.querySelector(".okButton")?.setAttribute("id", "okButton");
+      }
+      });
       return;
     }
-
+  
     try {
       setLoading(true);
-      setErrorMessage("");
-      setSuccessMessage("");
-
+  
       let pictureURL = "";
-
       if (formData.picture) {
         const file = formData.picture as unknown as File;
         pictureURL = await uploadImage(file);
       }
-
+  
       const requestBody = {
         fullName: `${formData.firstName} ${formData.lastName}`,
         gmail: formData.gmail,
@@ -83,7 +117,7 @@ export default function AddAdmin() {
         gender: formData.gender,
         role: formData.role,
       };
-
+  
       const response = await axios.post(
         "http://localhost:8080/api/admin/add",
         requestBody,
@@ -94,22 +128,28 @@ export default function AddAdmin() {
           },
         }
       );
-
+  
       if (response?.data?.status === "success") {
-        const { id, full_name, gmail, role } = response.data.data;
-        setSuccessMessage(
-          `เพิ่มบัญชีสำเร็จ: ID: ${id}, Name: ${full_name}, Email: ${gmail}, Role: ${role}`
-        );
-
-        setTimeout(() => {
+        const { id, fullName, gmail, role } = response.data.data;
+        Swal.fire({
+          title: "Account added successfully!",
+          html: `ID: ${id}<br>Name: ${fullName}<br>Email: ${gmail}<br>Role: ${role}`,
+          icon: "success",
+          confirmButtonText: "OK",
+          customClass: {
+            confirmButton: 'okButton'
+          },
+          didOpen: () => {
+            document.querySelector(".okButton")?.setAttribute("id", "okButton");
+          }
+        }).then(() => {
           router.back();
         });
       } else {
         throw new Error(response?.data?.message || "ไม่สามารถเพิ่มบัญชีได้");
       }
     } catch (err: any) {
-      console.error("Error:", err);
-      setErrorMessage(err.response?.data?.message || "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์");
+      Swal.fire("เกิดข้อผิดพลาด", err.response?.data?.message || "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์", "error");
     } finally {
       setLoading(false);
     }
@@ -137,10 +177,6 @@ export default function AddAdmin() {
           {errorMessage && (
             <div className="text-red-500 text-sm mb-4">{errorMessage}</div>
           )}
-          {successMessage && (
-            <div className="text-green-500 text-sm mb-4">{successMessage}</div>
-          )}
-
           <div className="mb-4 flex items-start">
             <div className="relative">
               <label className="cursor-pointer" id="addProfileImageButton">

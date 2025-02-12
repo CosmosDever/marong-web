@@ -44,14 +44,14 @@ export default function AdminProfile() {
             "Authorization": `Bearer ${token}`,
           },
         });
-
+  
         if (!response.ok) {
           console.error("Failed to fetch user data:", response.statusText);
           return;
         }
-
+  
         const result = await response.json();
-
+  
         if (result.statusCode === "200") {
           const { roles, id } = result.data;
           const roleNameMatch = roles.match(/name=ROLE_(.+)\)/);
@@ -64,9 +64,35 @@ export default function AdminProfile() {
         console.error("Error fetching user data:", error);
       }
     };
-
+  
     fetchAdminData();
   }, []);
+  
+  useEffect(() => {
+    const checkUserExists = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+  
+      try {
+        const response = await fetch(`http://localhost:8080/api/admin/${userId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+  
+        if (!response.ok) {
+          setError("User Not Found");
+        }
+      } catch (error) {
+        setError("User Not Found");
+      }
+    };
+  
+    checkUserExists();
+  }, [userId]);
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -191,8 +217,14 @@ export default function AdminProfile() {
 
   return (
     <div className="flex bg-blue-100 h-screen text-black">
-      <Sidebar />
-      <div className="flex-1 p-6">
+    <Sidebar />
+    <div className="flex-1 p-6">
+      {error === "User Not Found" ? (
+        <div className="text-center text-red-500 text-xl font-bold">
+          User Not Found
+        </div>
+      ) : (
+        <>
         <div className="text-3xl font-bold mb-6">EDIT PROFILE</div>
         <div className="flex justify-center items-center">
           <div className="bg-white shadow-md rounded-lg p-6 w-[90%] h-[90%] flex-col">
@@ -324,7 +356,9 @@ export default function AdminProfile() {
             </div>
           </div>
         </div>
-      </div>
+        </>
+      )}
     </div>
+  </div>
   );
 }
