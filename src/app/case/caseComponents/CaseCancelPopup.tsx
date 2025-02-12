@@ -23,7 +23,7 @@ const CancelPopup: React.FC<PopupProps> = ({
           <textarea
             id="CancelDetailBox"
             className="my-[2vh] px-[1vw] py-[.5vh] w-full h-[20vh] text-wrap border-black border-2"
-            placeholder="Detail.."
+            placeholder="Please insert detail"
             value={detailCancel}
             onChange={(e) => setDetailCancel(e.target.value)}
           ></textarea>

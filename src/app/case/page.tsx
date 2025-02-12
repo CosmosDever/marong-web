@@ -23,11 +23,11 @@ const casePage = () => {
               <p className="">Picture</p>
               <p className="pl-[1vw]">ID</p>
               <p className="justify-self-start pl-[1vw]">Type</p>
-              <p className=" overflow-visible whitespace-nowrap">
+              <p className=" overflow-visible whitespace-nowrap justify-self-start">
                 Damage value
               </p>
-              <p className="">Date</p>
-              <p className="pl-[1vw]">Status</p>
+              <p className="justify-self-start pl-[3vw]">Date</p>
+              <p className="justify-self-start pl-[2vw]">Status</p>
             </div>
             {/* box */}
             <div

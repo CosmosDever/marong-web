@@ -95,6 +95,7 @@ const Sidebar: FC = () => {
               {sidebarItems.map(({ name, route }) => (
                 <Link href={route} key={name}>
                   <li
+                  id={name}
                     className={`flex items-center ml-2 py-2 px-4 rounded-lg cursor-pointer ${
                       isActive(route)
                         ? "bg-blue-200 text-blue-800"

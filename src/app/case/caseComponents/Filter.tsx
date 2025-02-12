@@ -47,6 +47,7 @@ const FilterButton: React.FC<Filter> = ({
         <div className="absolute right-[.2vw] mt-[1vh] w-[10vw] bg-white border border-gray-300 rounded shadow-lg">
           {filters.map((filter) => (
             <label
+            id={filter}
               key={filter}
               className="flex items-center px-4 py-2 hover:bg-gray-100"
             >
@@ -62,6 +63,7 @@ const FilterButton: React.FC<Filter> = ({
 
           {/* Apply Button */}
           <button
+          id="CloseFilter btn"
             className="block w-full px-[1vw] py-[1vh] text-center bg-blue-600 text-white hover:bg-blue-800 active:bg-blue-950 mt-[1vh] rounded"
             onClick={() => {
               console.log("Selected Filters:", selectedFilters); 

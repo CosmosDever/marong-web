@@ -5,24 +5,6 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import FilterButton from "./Filter";
 
-// // SEARCH
-export async function Search(cases: any[], query: string) {
-  if (!cases) return [];
-  return cases.filter(
-    (item) =>
-      item.caseId.toString().toLowerCase().includes(query.toLowerCase()) ||
-      item.category.toLowerCase().includes(query.toLowerCase()) ||
-      item.dateOpened.toLowerCase().includes(query.toLowerCase()) ||
-      item.status.toLowerCase().includes(query.toLowerCase())
-  );
-}
-
-// SHOW CASE
-interface ApiResponse {
-  message: {
-    token: string[];
-  };
-}
 
 interface CaseData {
   caseId: number;
@@ -72,22 +54,26 @@ const CaseBox: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (cases) {
-      const filteredCases = cases.filter((item) => {
-        const matchesQuery = item.detail
-          .toLowerCase()
-          .includes(query.toLowerCase());
-        const matchesCategory = selectedFilters.length
-          ? selectedFilters.includes(item.category)
-          : true;
-
-        return matchesQuery && matchesCategory;
-      });
-
-      setSearchCases(filteredCases);
-    }
-  }, [query, selectedFilters, cases]);
+    // Search
+    useEffect(() => {
+      if (cases) {
+        const filteredCases = cases.filter((item) => {
+          const matchesQuery =
+            item.caseId.toString().toLowerCase().includes(query.toLowerCase()) ||
+            item.category.toLowerCase().includes(query.toLowerCase()) ||
+            item.status.toLowerCase().includes(query.toLowerCase());
+    
+          const matchesCategory = selectedFilters.length
+            ? selectedFilters.includes(item.category)
+            : true;
+    
+          return matchesQuery && matchesCategory;
+        });
+    
+        setSearchCases(filteredCases);
+      }
+    }, [query, selectedFilters, cases]);
+    
 
   useEffect(() => {
     const token = localStorage.getItem("token")
@@ -143,13 +129,13 @@ const CaseBox: React.FC = () => {
                       width={120}
                     />
                   </div>
-                  <p className="text-center">{item.caseId}</p>
-                  <p className="">{item.category}</p>
-                  <p className="">{item.damage_value}</p>
-                  <p className="">
+                  <p id="caseId" className="text-center">{item.caseId}</p>
+                  <p id="caseCategory" className="">{item.category}</p>
+                  <p id="caseDamageValue" className="">{item.damage_value}</p>
+                  <p id="caseDateOpened" className="">
                     {new Date(item.dateOpened).toLocaleDateString("en-GB")}
                   </p>
-                  <p className={`font-normal pl=[2vw] ${
+                  <p className={`font-normal  ${
                     item.status === "InProgress"
                       ? "text-[#ff8000]"
                       : item.status === "Waiting"
@@ -167,6 +153,7 @@ const CaseBox: React.FC = () => {
         </div>
       </div>
       <div className="absolute top-[10vh] right-[5vw] flex ">
+
         {/* Search input */}
         <div className="h-[5vh] flex">
           <img
@@ -175,15 +162,17 @@ const CaseBox: React.FC = () => {
             className="h-[1.5vw] w-[1.5vw] mt-[1vh] mr-[.5vw]"
           />
           <input
+          id="searchBox"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             // onKeyDown={handleKeyDown}
             className="w-[30vw] h-full pl-[1vw] border-blue-600 border-4 rounded-s-lg
            active:border-blue-900 active:outline-none focus:border-blue-900 focus:outline-none"
             type="text"
-            placeholder="Type search.."
+            placeholder="Search something"
           />
         </div>
+
         {/* filter btn */}
         <FilterButton
           isFilterVisible={isFilterVisible}
